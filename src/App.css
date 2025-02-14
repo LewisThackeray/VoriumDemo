@@ -1,0 +1,69 @@
+@font-face {font-family: "Poppins"; src: url("../assets/fonts/Poppins-Black.ttf") format("truetype"); font-weight: normal; font-style: normal;}
+
+:root {--PoppinsFont: 'Poppins', sans-serif}
+
+.App {display: flex; background-color: white; color: black; position: absolute; top: 0; bottom: 0; right: 0; left: 0;}
+
+.sidemenu {width: 230px; border: 1px solid white; background-color: white; transform: translateX(-100%); transition: transform 0.3s ease; position: absolute; top: 0; bottom: 0; left: 0; z-index: 999;}
+
+.sidemenu.open {transform: translateX(0);}
+
+.sidemenu.closed {transform: translateX(-100%);}
+
+.main {flex: 1; border: 1px solid white; transition: margin-left 0.3s ease; position: relative;}
+
+.menuIcon-menu-closed {background-color: white; color: black; border-radius: 4px; padding: 10px; margin-top: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); text-align: center; display: flex; align-items: center; height: 20px; width: 20px;
+  justify-content: center; border-radius: 5px; position: relative; top: 10px; left: 20px; z-index: 1200;
+}
+
+.menuIcon-menu-open {background-color: white; color: black; border-radius: 4px; padding: 10px; margin-top: 5px; cursor: pointer; text-align: center; height: 20px; width: 20px; display: flex; align-items: center; justify-content: center;
+  border-radius: 5px; position: relative; top: 10px; left: 20px; z-index: 1200; box-shadow: none;
+}
+
+.menuIcon {transition: box-shadow 0.3s ease-in-out;}
+
+.menuIcon-closed {box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+
+.menuIcon-open {box-shadow: none;}
+
+.mapContainer {width: 100%; height: 100%; position: absolute; top: 0; bottom: 0; right: 0; left: 0; outline: none;}
+
+.custom-zoom-container {display: flex; flex-direction: column; gap: 10px; position: absolute; bottom: 20px; right: 20px;}
+
+.custom-zoom-button {background-color: white; border-radius: 50%; padding: 10px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); position: fixed;}
+
+.esri-search {margin: 0; padding: 0; border-radius: 10px;}
+
+.esri-search .esri-input .esri-search__container .esri-search__input .esri-widget--button {border-radius: 10px; margin: 0;}
+
+.esri-search__container .esri-search__form .esri-search__input-container {margin: 0; padding: 0;}
+
+.esri-search__submit-button {margin: 0; border-radius: 10px; z-index: 1000;}
+
+.sketchWidget {position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000000000;}
+
+.closeButton {position: absolute; top: 10px; right: 10px; z-index: 11000000;}
+
+.new-menu-closed {background-color: white; color: black; border-radius: 4px; padding: 10px; margin-top: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); text-align: center; height: 20px; width: 20px; text-align: center;
+  display: flex; align-items: center; justify-content: center; border-radius: 5px; position: fixed; top: 10px; left: 70px; z-index: 1200;
+}
+
+.new-menu-open {background-color: white; color: black; border-radius: 4px; padding: 10px; margin-top: 5px; cursor: pointer; text-align: center; height: 20px; width: 20px; text-align: center; display: flex; align-items: center;
+  justify-content: center; border-radius: 5px; position: fixed; top: 10px; left: 170px; z-index: 1200;
+}
+
+.sidemenu *{box-shadow: 0;}
+
+.sketchWidget {position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 230px; z-index: 100; border-radius: 5px;}
+
+.sketchWidget button {position: absolute; top: 5px; transform: translateY(-75%); left: 170px; z-index: 110; background-color: white; color: rgb(204, 93, 93); border: none; border-radius: 4px; height: 30px;  width: 30px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; margin-top: 20px; margin-left: 15px;
+}
+
+.doneButton, .cancelButton {padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; border-radius: 5px; color: white; display: flex; align-items: center; justify-content: center; z-index: 2000;}
+
+.doneButton {background-color: green;}
+
+.cancelButton {background-color: red;}
+
+.esri-graphic .esri-fill {fill-opacity: 0 !important;}
