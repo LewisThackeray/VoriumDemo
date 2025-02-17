@@ -2,7 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react'; import {CiZoomIn, CiZoomOut} from 'react-icons/ci'; import {GrFormAdd} from 'react-icons/gr';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils'; import Graphic from '@arcgis/core/Graphic'; import './App.css';
 import {IoMenu, IoCloseOutline} from 'react-icons/io5'; import Polyline from '@arcgis/core/geometry/Polyline'; import {loadModules} from 'esri-loader';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom'; import PopUp from '../src/PopUp.jsx';
 
 // This is a Shared State between App.jsx and Processing.jsx for Holding Coordinates and Tracking Progress.
 const sharedState = {vertices: [], dataURL: '', bounds: [], progress: 0};
