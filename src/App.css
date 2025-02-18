@@ -44,8 +44,6 @@
 
 .esri-search__submit-button {margin: 0; border-radius: 10px; z-index: 1000;}
 
-.sketchWidget {position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000000000;}
-
 .closeButton {position: absolute; top: 10px; right: 10px; z-index: 11000000;}
 
 .new-menu-closed {background-color: white; color: black; border-radius: 4px; padding: 10px; margin-top: 5px; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); text-align: center; height: 20px; width: 20px; text-align: center;
@@ -68,6 +66,8 @@
 
 .doneButton {background-color: green;}
 
-.cancelButton {background-color: red;}
+.cancelButton {height: 50px; width: 150px; position: fixed; top: 20px; left: 40%; transform: translateX(-50%); background-color: lightcoral; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; z-index: 2000;
+}
 
 .esri-graphic .esri-fill {fill-opacity: 0 !important;}

@@ -2,7 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react'; import {CiZoomIn, CiZoomOut} from 'react-icons/ci'; import {GrFormAdd} from 'react-icons/gr';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils'; import Graphic from '@arcgis/core/Graphic'; import './App.css';
 import {IoMenu, IoCloseOutline} from 'react-icons/io5'; import Polyline from '@arcgis/core/geometry/Polyline'; import {loadModules} from 'esri-loader';
-import ReactDOM from 'react-dom'; import PopUp from '../src/PopUp.jsx';
+import ReactDOM from 'react-dom'; import PopUp from './PopUp.jsx';
 
 // This is a Shared State between App.jsx and Processing.jsx for Holding Coordinates and Tracking Progress.
 const sharedState = {vertices: [], dataURL: '', bounds: [], progress: 0};
@@ -24,7 +24,7 @@ function App() {
   const [isSketchDrawn, setIsSketchDrawn] = useState(false); const [isDrawing, setIsDrawing] = useState(false); const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isShowingButtons, setIsShowingButtons] = useState(false); const [isPopUpOpen, setIsPopUpOpen] = useState(false);
 
-  const [popUptitle, setPopUpTitile] = useState(''); const [popUpMessage, setPopUpMessage] = useState(''); const [polygonPoints, setPolygonPoints] = useState([]);
+  const [popUpTitle, setPopUpTitle] = useState(''); const [popUpMessage, setPopUpMessage] = useState(''); const [polygonPoints, setPolygonPoints] = useState([]);
   const[drawnGraphics, setDrawnGraphics] = useState([]); const [coordinates, setCoordinates] = useState([]);
 
   const shapeRef = useRef(false); const mapRef = useRef(null); const viewRef = useRef(null); const sketchRef = useRef(null); const graphicsLayerRef = useRef(null);
@@ -204,21 +204,21 @@ function App() {
 
   const toggleMenu = () => {setIsMenuOpen(prevState => !prevState)}; // Allowing the User to Open and Close the Toggleable Side Menu.
 
-  const showErrorPopUp = (message) => {setPopUpTitile('WARNING!'); setPopUpMessage(message); setIsPopUpOpen(true);} // Creating an Error Message if an Error Occurs.
+  const showErrorPopUp = (message) => {setPopUpTitle('WARNING!'); setPopUpMessage(message); setIsPopUpOpen(true);} // Creating an Error Message if an Error Occurs.
 
   // Creating the Toolbar which Stores the Tools the User Requires to Draw a Polygon or Rectangle on the Map.
   const polygonTool = () => {
     if (viewRef.current) {
-      if (viewRef.current.zoom <= sketchThreshold) { // Closing the Toolbar if the Zoom Level is not Below the Threshold.
-        if (viewRef.current.ui.find('sketchWidget')) {closeSketchWidget()}; showErrorPopUp("You Need to Zoom In Further to Create a Sketch!");
+      if (viewRef.current.zoom <= sketchThreshold) {
+        if (viewRef.current.ui.find('sketchWidget')) {closeSketchWidget()}; showErrorPopUp("Zoom in Further to Create a Sketch!");
       } else {
         viewRef.current.zoom = 17; viewRef.current.ui.add(sketchRef.current, 'manual'); sketchRef.current.container.classList.add('sketchWidget');
-        const closeButton = document.createElement('button'); closeButton.classList.add('closeButton'); closeButton.onclick = () => closeSketchWidget();
-        sketchRef.current.container.appendChild(closeButton); const closeIcon = React.createElement(IoCloseOutline, {size: 20});
-        ReactDOM.render(closeIcon, closeButton);
+        const closeButton = (<button className="closeButton" onClick={closeSketchWidget}> <IoCloseOutline size={20} /> </button>);
+        const root = ReactDOM.createRoot(sketchRef.current.container); root.render(closeButton);
       }
     }
   }
+
   return (
     <div className="App">
       <aside className={`sidemenu ${isMenuOpen ? 'open' : 'closed'}`} id="sidemenu">
@@ -239,7 +239,7 @@ function App() {
           <button id='cancelButton' className='cancelButton' onClick={handleCancelClick}>Cancel</button>
         </div>
       )}
-      {isPopUpOpen && <Popup closePopUp={() => setIsPopupOpen(false)} title={popupTitle} message={popupMessage} />}
+      {isPopUpOpen && <PopUp closePopUp={() => setIsPopupOpen(false)} title={popUpTitle} message={popUpMessage} />}
       {isShowingProcessingScreen && <ProcessingScreen coordinates={coordinates}/>}
     </div>
   );
