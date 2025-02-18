@@ -2,7 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react'; import {CiZoomIn, CiZoomOut} from 'react-icons/ci'; import {GrFormAdd} from 'react-icons/gr';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils'; import Graphic from '@arcgis/core/Graphic'; import './App.css';
 import {IoMenu, IoCloseOutline} from 'react-icons/io5'; import Polyline from '@arcgis/core/geometry/Polyline'; import {loadModules} from 'esri-loader';
-import ReactDOM from 'react-dom'; import PopUp from './PopUp.jsx';
+import ReactDOM from 'react-dom/client'; import PopUp from './PopUp.jsx';
 
 // This is a Shared State between App.jsx and Processing.jsx for Holding Coordinates and Tracking Progress.
 const sharedState = {vertices: [], dataURL: '', bounds: [], progress: 0};
@@ -38,7 +38,7 @@ function App() {
   // Showing or Hiding the Buttons based on the Window Width and whether the Application is in "Drawing State", for the User to Draw on the Map.
   useEffect(() => {
     if (windowWidth < threshold) {setIsShowingButtons(false);} else if (drawnGraphics.length > 0) {setIsShowingButtons(true);}
-    else if ((document.getElementById('doneButton') && document.getElementById('cancelButton'))) {setIsShowingButtons(true)} else {setIsShowingButtons(false);}
+    else if ((document.getElementById('doneButton')) && (document.getElementById('cancelButton'))) {setIsShowingButtons(true)} else {setIsShowingButtons(false);}
   }, [windowWidth, drawnGraphics]);
 
   // Load ESRI Map Modules and Initialise the Map View.
@@ -63,14 +63,14 @@ function App() {
       const graphicsLayer = new GraphicsLayer(); map.add(graphicsLayer); graphicsLayerRef.current = graphicsLayer;
 
       // Handling a Single Click for a Polygon on the Map.
-      view.on('click', (event) => {if (drawing) {const point = event.mapPoint; setPolygonPoints(prev => [...prev, [point.longitude, point.latitude]]);}})
+      view.on('click', (event) => {if (isDrawing) {const point = event.mapPoint; setPolygonPoints(prev => [...prev, [point.longitude, point.latitude]]);}});
 
       // Handling a Double Click for Completing the Drawing of the Polygon on the Map.
       view.on('double-click', (event) => {
-        if (drawing && polygonPoints.length > 2){
+        if (isDrawing && polygonPoints.length > 2){
           const polygon = new Polygon({rings: [polygonPoints.concat(polygonPoints[0])], spatialReference: view.spatialReference});
           const graphic = new Graphic({geometry: polygon, symbol: {type: 'simple-fill', colour: [255,255,255,0], outline: {color: 'black', width: 1}}});
-          graphicsLayer.add(graphic); setDrawing(false); setPolygonPoints([]);
+          graphicsLayer.add(graphic); setIsDrawing(false); setPolygonPoints([]);
         }
       });
 
@@ -85,14 +85,14 @@ function App() {
 
       // Handling the Creation of a Sketch on the Map.
       sketch.on('create', (event) => {
-        if (event.state == 'complete') {
+        if (event.state === 'complete') {
           event.graphic.symbol = {type: 'simple-fill', color: [0,0,0,0], outline: {color: 'black', width: 2}}; graphicsLayerRef.current.add(event.graphic);
           if (event.graphic.geometry.type == 'polygon') { // Getting the Coordinates of the Vertices of the Polygon.
             const rings = event.graphic.geometry.rings; rings[0].forEach(([x,y]) => {const long = mercatorXToLongitude(x); const lat = mercatorYToLatitude(y);
               const isDuplicate = sharedState.vertices.some(vertex => vertex.longitude === long && vertex.latitude === lat);
               if (!isDuplicate) {sharedState.vertices.push({longitude: long, latitude: lat});}
             });
-          } else if (event.graphic.geometry.type == 'rectangle') { // Getting the Coordinates of the Vertices of the Rectangle.
+          } else if (event.graphic.geometry.type === 'rectangle') { // Getting the Coordinates of the Vertices of the Rectangle.
             const {xmin, ymin, xmax, ymax} = event.graphic.geometry.extent;
             const vertices = [{x: xmin, y: ymin}, {x: xmax, y: ymin}, {x: xmax, y: ymax}, {x: xmin, y: ymax}];
             vertices.forEach(({x,y}) => {
@@ -101,7 +101,7 @@ function App() {
               if (!isDuplicate) {sharedState.vertices.push({longitude: long, latitude: lat});}
             });
           }
-          setIsSketchDrawn(true); sketchRef.current = true; setDrawnGraphics(prevGraphics => [...prevGraphics, {graphic: event.graphic}]);
+          setIsSketchDrawn(true); shapeRef.current = true; setDrawnGraphics(prevGraphics => [...prevGraphics, {graphic: event.graphic}]);
         }
       });
 
@@ -113,17 +113,16 @@ function App() {
         if (event.deltaY < 0 && view.zoom >= maxZoomLevel) {event.stopPropagation();} else if (event.deltaY > 0 && view.zoom <= minZoomLevel) {event.stopPropagation();}
       });
 
-      view.watch("zoom", (newZoom) => {if (newZoom != 17) {closeSketchWidget();}}); // Ensuring the User cannot Sketch on the Map if the Zoom Level Changes.
+      view.watch("zoom", (newZoom) => {if (newZoom !== 17) {closeSketchWidget();}}); // Ensuring the User cannot Sketch on the Map if the Zoom Level Changes.
 
     }).catch(err => console.error(err));
   }, [])
-
 
   // Preventing the User from Sketching another Shape on the Map when a Sketch has Already been Drawn.
   useEffect(() => {if (isSketchDrawn) {viewRef.current.ui.remove(sketchRef.current); setIsSketchDrawn(false);}}, [isSketchDrawn]);
 
   // Handling the Processing of the Shape Drawn on the Map when the "Done" Button is Clicked.
-  const handleDoneClick = async() => {
+  const handleDoneClick = async () => {
 
     if (sketchRef.current) {viewRef.current.ui.remove(sketchRef.current);} // Removing the Sketch Widget from the UI and Clearing the Graphics Layer.
 
@@ -136,7 +135,7 @@ function App() {
       });
     }
 
-    // Connecting the Vertices of the Polygon or Rectangle on the Map using Lines.
+    // Connecting the Vertices of the Polygon or Rectangle on the Map using Lines. -> COULD BE REMOVED TO STREAMLINE OPERATIONS
     if (sharedState.vertices.length > 1) {
       for (let i = 0; i < sharedState.vertices.length - 1; i++) {
         const start = sharedState.vertices[i]; const end = sharedState.vertices[i + 1];
@@ -164,7 +163,7 @@ function App() {
         if (!extent) {console.error("ERROR: No Polygon or Rectangle to Capture."); showErrorPopUp("There is no Sketch to Capture on the Map!"); return;}
         viewRef.current.extent = extent; await viewRef.current.when();
 
-        const canvas = document.createElement('canvas'); canvas.width = viewRef.current.width;  canvas.height = viewRef.current.height;
+        const canvas = document.createElement('canvas'); canvas.width = viewRef.current.width; canvas.height = viewRef.current.height;
         const ctx = canvas.getContext('2d');
 
         await new Promise((resolve) => {
@@ -180,7 +179,6 @@ function App() {
 
       } catch (error) {console.error("ERROR: Graphic couldn't be Captured - ", error); showErrorPopUp("The Sketch Couldn't be Processed.  Try Again!");}
     } else {console.error("ERROR: No Graphics Available to Capture.");}
-
     setIsShowingProcessingScreen(false); // Hiding the Processing Screen after the Image has been Processed.
   };
 
@@ -193,8 +191,8 @@ function App() {
   // Handling the Closing of the Sketch Widget and the Tools used to Draw on the Map.
   const closeSketchWidget = () => {
     if (sketchRef.current && viewRef.current) {
-      viewRef.current.ui.remove(sketchRef.current); if (graphicsLayerRef.current) {graphicsLayerRef.current.removeAll()}; setDrawnGraphics([]);
-      setIsShowingButtons(false); shapeRef.current = false;
+      viewRef.current.ui.remove(sketchRef.current);
+      if (graphicsLayerRef.current) {graphicsLayerRef.current.removeAll()}; setDrawnGraphics([]); setIsShowingButtons(false); shapeRef.current = false;
     }
   }
 
@@ -210,11 +208,17 @@ function App() {
   const polygonTool = () => {
     if (viewRef.current) {
       if (viewRef.current.zoom <= sketchThreshold) {
-        if (viewRef.current.ui.find('sketchWidget')) {closeSketchWidget()}; showErrorPopUp("Zoom in Further to Create a Sketch!");
+        if (viewRef.current.ui.find('sketchWidget')) {closeSketchWidget();} showErrorPopup("You need to zoom in further to create a new polygon.");
       } else {
-        viewRef.current.zoom = 17; viewRef.current.ui.add(sketchRef.current, 'manual'); sketchRef.current.container.classList.add('sketchWidget');
-        const closeButton = (<button className="closeButton" onClick={closeSketchWidget}> <IoCloseOutline size={20} /> </button>);
-        const root = ReactDOM.createRoot(sketchRef.current.container); root.render(closeButton);
+        if (sketchRef.current) {
+          if (!viewRef.current.ui.find('sketchWidget')) {
+            viewRef.current.zoom = 17; viewRef.current.ui.add(sketchRef.current, 'manual');
+            sketchRef.current.container.classList.add('sketchWidget'); const closeButton = document.createElement('button');
+            closeButton.onclick = () => closeSketchWidget(); sketchRef.current.container.appendChild(closeButton);
+
+            const closeIcon = React.createElement(IoCloseOutline, { size: 20 }); const root = ReactDOM.createRoot(closeButton); root.render(closeIcon);
+          }
+        }
       }
     }
   }
@@ -230,7 +234,7 @@ function App() {
         <div className="custom-zoom-container">
           <div className="custom-zoom-button" onClick={zoomIn}> <CiZoomIn size={30} /> </div>
           <div className="custom-zoom-button" onClick={zoomOut}> <CiZoomOut size={30} /> </div>
-          {!isShowingButtons && (<GrFormAdd size={30} color='black' className='new-menu-closed' onClick={polygonTool} />)}
+          {!isShowingButtons && (<GrFormAdd size={30} className='new-menu-closed' onClick={polygonTool}/>)};
         </div>
       </section>
       {isShowingButtons && (
@@ -239,7 +243,7 @@ function App() {
           <button id='cancelButton' className='cancelButton' onClick={handleCancelClick}>Cancel</button>
         </div>
       )}
-      {isPopUpOpen && <PopUp closePopUp={() => setIsPopupOpen(false)} title={popUpTitle} message={popUpMessage} />}
+      {isPopUpOpen && <PopUp closePopUp={() => setIsPopUpOpen(false)} title={popUpTitle} message={popUpMessage} />}
       {isShowingProcessingScreen && <ProcessingScreen coordinates={coordinates}/>}
     </div>
   );
