@@ -2,7 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react'; import {CiZoomIn, CiZoomOut} from 'react-icons/ci'; import {GrFormAdd} from 'react-icons/gr';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils'; import Graphic from '@arcgis/core/Graphic'; import './App.css';
 import {IoMenu, IoCloseOutline} from 'react-icons/io5'; import Polyline from '@arcgis/core/geometry/Polyline'; import {loadModules} from 'esri-loader';
-import ReactDOM from 'react-dom/client'; import PopUp from './PopUp.jsx';
+import ReactDOM from 'react-dom/client'; import PopUp from './PopUp.jsx'; import {IoIosContact} from "react-icons/io";
 
 // This is a Shared State between App.jsx and Processing.jsx for Holding Coordinates and Tracking Progress.
 const sharedState = {vertices: [], dataURL: '', bounds: [], progress: 0};
@@ -184,8 +184,8 @@ function App() {
 
   // Handling the Processing of the Shape Drawn on the Map when the "Cancel" Button is Clicked.
   const handleCancelClick = () => {
-    if (graphicsLayerRef.current) {graphicsLayerRef.current.removeAll()}; setDrawnGraphics([]); setIsShowingButtons(false);
-    viewRef.current.ui.add(sketchRef.current, 'manual');
+    if (graphicsLayerRef.current) {graphicsLayerRef.current.removeAll()}; setPolygonPoints([]); setDrawnGraphics([]); sharedState.vertices = []; setIsDrawing(false);
+    setIsSketchDrawn(false); shapeRef.current = false; setIsShowingButtons(false); viewRef.current.ui.add(sketchRef.current, 'manual');
   }
 
   // Handling the Closing of the Sketch Widget and the Tools used to Draw on the Map.
@@ -208,7 +208,7 @@ function App() {
   const polygonTool = () => {
     if (viewRef.current) {
       if (viewRef.current.zoom <= sketchThreshold) {
-        if (viewRef.current.ui.find('sketchWidget')) {closeSketchWidget();} showErrorPopup("You need to zoom in further to create a new polygon.");
+        if (viewRef.current.ui.find('sketchWidget')) {closeSketchWidget();} showErrorPopUp("You need to zoom in further to create a new polygon.");
       } else {
         if (sketchRef.current) {
           if (!viewRef.current.ui.find('sketchWidget')) {
@@ -226,10 +226,17 @@ function App() {
   return (
     <div className="App">
       <aside className={`sidemenu ${isMenuOpen ? 'open' : 'closed'}`} id="sidemenu">
+        <button className="contact-button">
+          <IoIosContact size={30} className="contact-icon" onClick={() => window.location.href = "mailto:lewisthackeray123@outlook.com"} />
+          <p className="contact-title">Contact</p>
+        </button>
+        <div className="sidemenu-company-info">
+          <img src="./src/assets/images/logo.png" alt="logo" className="sidemenu-image"/> <p className="sidemenu-info"> © Vorium - March 2025 </p>
+        </div>
         {windowWidth >= threshold && !isShowingButtons && (<GrFormAdd size={30} color='black' className='new-menu-open' onClick={polygonTool} />)}
       </aside>
       <section className="main">
-        <IoMenu size={30} color='black' className={`menuIcon-menu-closed ${isMenuOpen ? 'menuIcon-menu-open' : ''}`} onClick={toggleMenu} />
+        <IoMenu size={30} className={`menuIcon-menu-closed ${isMenuOpen ? 'menuIcon-menu-open' : ''}`} onClick={toggleMenu} />
         <div ref={mapRef} className="mapContainer"></div>
         <div className="custom-zoom-container">
           <div className="custom-zoom-button" onClick={zoomIn}> <CiZoomIn size={30} /> </div>
