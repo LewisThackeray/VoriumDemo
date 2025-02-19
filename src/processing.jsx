@@ -7,10 +7,10 @@ function createCanvas(width, height) {const canvas = document.createElement('can
 async function loadImage(source) {
   return new Promise((resolve, reject) => {const img = new Image(); img.crossOrigin = 'Anonymous'; img.src = source; img.onload = () => resolve(img);
     img.onerror = () => reject(new Error("Failed to Load the Image!"));
-  }
+  });
 }
 
-// Function to Display an Image in a New Browser Window. *** USED ONLY FOR TESTING ***
+// Function to Display an Image in a New Browser Window. *** USED ONLY FOR TESTING *** -< PROBLEM EXISTS HERE!!!
 function displayImage(source, windowName = 'Image Viewer', width = 800, height = 600) {
   const newWindow = window.open('', windowName, 'width=${width},height=${height}'); if (!newWindow) {new Error("Failed to Open a New Window!"); return;}
   const linkCSS = newWindow.document.createElement('link'); linkCSS.rel = 'stylesheet'; linkCSS.href = '../src/processing.css';
@@ -41,4 +41,7 @@ async function greyscale(source) {
   canvas.putImageData(imageData, 0, 0); return canvas.canvas.toDataURL();
 }
 
+// Function which Controls the Process of Extracting the Addresses from the Screenshot of the Properties.
 async function message(sharedState, callback) {const myImage = sharedState.dataURL; displayImage(await greyscale(myImage));}
+
+export default message;

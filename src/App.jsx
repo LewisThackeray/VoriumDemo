@@ -2,7 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react'; import {CiZoomIn, CiZoomOut} from 'react-icons/ci'; import {GrFormAdd} from 'react-icons/gr';
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils'; import Graphic from '@arcgis/core/Graphic'; import './App.css';
 import {IoMenu, IoCloseOutline} from 'react-icons/io5'; import Polyline from '@arcgis/core/geometry/Polyline'; import {loadModules} from 'esri-loader';
-import ReactDOM from 'react-dom/client'; import PopUp from './PopUp.jsx'; import {IoIosContact} from "react-icons/io";
+import ReactDOM from 'react-dom/client'; import PopUp from './PopUp.jsx'; import {IoIosContact} from "react-icons/io"; import message from './processing.jsx';
 
 // This is a Shared State between App.jsx and Processing.jsx for Holding Coordinates and Tracking Progress.
 const sharedState = {vertices: [], dataURL: '', bounds: [], progress: 0};
@@ -135,7 +135,7 @@ function App() {
       });
     }
 
-    // Connecting the Vertices of the Polygon or Rectangle on the Map using Lines. -> COULD BE REMOVED TO STREAMLINE OPERATIONS
+    // Connecting the Vertices of the Polygon or Rectangle on the Map using Lines.
     if (sharedState.vertices.length > 1) {
       for (let i = 0; i < sharedState.vertices.length - 1; i++) {
         const start = sharedState.vertices[i]; const end = sharedState.vertices[i + 1];
