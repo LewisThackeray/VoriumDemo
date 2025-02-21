@@ -78,6 +78,6 @@
 
 .contact-title {font-size: 18px; font-weight: bold; margin: 0; font-family: var(--PoppinsFont);}
 
-.menuIcon-menu-closed:hover, .menuIcon-menu-open:hover, .new-menu-closed:hover, .new-menu-open:hover, .custom-zoom-button:hover, .sketchWidget button:hover, .contact-button:hover {background-color: lightgrey; transition: background-color}
+.menuIcon-menu-closed:hover, .menuIcon-menu-open:hover, .new-menu-closed:hover, .new-menu-open:hover, .custom-zoom-button:hover, .contact-button:hover {background-color: lightgrey; transition: background-color}
 
 .esri-graphic .esri-fill {fill-opacity: 0 !important;}

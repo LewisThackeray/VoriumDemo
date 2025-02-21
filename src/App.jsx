@@ -119,7 +119,7 @@ function App() {
   }, [])
 
   // Preventing the User from Sketching another Shape on the Map when a Sketch has Already been Drawn.
-  useEffect(() => {if (isSketchDrawn) {viewRef.current.ui.remove(sketchRef.current); setIsSketchDrawn(false);}}, [isSketchDrawn]);
+  useEffect(() => {if (isSketchDrawn) {viewRef.current.ui.remove(sketchRef.current); setIsSketchDrawn(false);}}, [isSketchDrawn])
 
   // Handling the Processing of the Shape Drawn on the Map when the "Done" Button is Clicked.
   const handleDoneClick = async () => {
@@ -153,33 +153,31 @@ function App() {
     }
 
     // Take an Image of the Polygon/Rectangle and the Surrounding Area to Process and Feed into the API to Find the Addresses of the Properties within the Sketch.
-    const extent = viewRef.current.extent; const geographicalExtent = webMercatorUtils.webMercatorToGeographic(extent);
-    const {xmin, ymin, xmax, ymax} = geographicalExtent; const graphics = graphicsLayerRef.current.graphics.toArray();
+    const extent = viewRef.current.extent; const geographicExtent = webMercatorUtils.webMercatorToGeographic(extent);
+    const { xmin, ymin, xmax, ymax } = geographicExtent; const graphics = graphicsLayerRef.current.graphics.toArray();
 
     if (graphics.length > 0) {
-      try {
+        try {
+            const graphic = graphics[0]; const extent = graphic.geometry.extent || graphic.geometry;
+            if (!extent) {showErrorPopup("There is no Polygon or Rectangle to Capture! Please try again."); return;}
+            viewRef.current.extent = extent; await viewRef.current.when();
 
-        const graphic = graphics[0]; const extent = graphic.geometry.extent || graphic.geometry;
-        if (!extent) {console.error("ERROR: No Polygon or Rectangle to Capture."); showErrorPopUp("There is no Sketch to Capture on the Map!"); return;}
-        viewRef.current.extent = extent; await viewRef.current.when();
+            const canvas = document.createElement('canvas'); canvas.width = viewRef.current.width; canvas.height = viewRef.current.height;
+            const ctx = canvas.getContext('2d');
 
-        const canvas = document.createElement('canvas'); canvas.width = viewRef.current.width; canvas.height = viewRef.current.height;
-        const ctx = canvas.getContext('2d');
-
-        await new Promise((resolve) => {
-          viewRef.current.when(() => {
-            viewRef.current.takeScreenshot().then((screenshot) => {
-              const img = new Image(); img.src = screenshot.dataUrl; img.onload = () => {
-                sharedState.dataUrl = canvas.toDataURL('image/png'); sharedState.bounds = {xmin, ymin, xmax, ymax};
-                message(sharedState, (downsampledCoordinates) => {setCoordinates(downsampledCoordinates)}); setIsShowingProcessingScreen(true);
-              }; resolve();
-            }).catch((error) => {console.error("ERROR: Screenshot couldn't be taken."); showErrorPopUp("The Sketch Couldn't be Processed.  Try Again!")});
-          });
-        });
-
-      } catch (error) {console.error("ERROR: Graphic couldn't be Captured - ", error); showErrorPopUp("The Sketch Couldn't be Processed.  Try Again!");}
-    } else {console.error("ERROR: No Graphics Available to Capture.");}
-    setIsShowingProcessingScreen(false); // Hiding the Processing Screen after the Image has been Processed.
+            await new Promise((resolve) => {
+                viewRef.current.when(() => {
+                    viewRef.current.takeScreenshot().then((screenshot) => {
+                        const img = new Image(); img.src = screenshot.dataUrl; img.onload = () => {
+                            ctx.drawImage(img, 0, 0); sharedState.dataURL = canvas.toDataURL('image/png'); sharedState.bounds = { xmin, ymin, xmax, ymax };
+                            message(sharedState, (downsampledCoordinates) => {setCoordinates(downsampledCoordinates);}); setShowProcessingScreen(true);
+                        }; resolve();
+                    }).catch((error) => {showErrorPopup("Screenshot couldn't be taken!");});
+                });
+            });
+        } catch (error) {showErrorPopup("Failed to capture the graphic. Please try again!");}
+    } else {console.error("No graphics available to capture.");}
+    setIsShowingProcessingScreen(false);
   };
 
   // Handling the Processing of the Shape Drawn on the Map when the "Cancel" Button is Clicked.

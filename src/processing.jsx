@@ -1,31 +1,112 @@
 const threshold = 238; // Creating a Threshold which is used to Create the Greyscale Image into a Binary Image.
 
-// Function to Create a Canvas which the Updated Image is Drawn onto During Processing.
+async function message(sharedState, callback) {
+
+  const inputImage = sharedState.dataURL; const noRoadsImage = await removeRoads(inputImage); // Step 1: Removing the Roads from the Input Image.
+
+  const greyscaleImage = await greyscale(noRoadsImage); // Step 2: Converting the Input Image with No Roads to a Greyscale Image.
+
+  const binaryImage = await binary(greyscaleImage); // Step 3: Converting the Greyscale Image to a Binary Image.
+
+  // Step 4: Creating an Abstraction around the Image being Processed by Changing the Colour of all the Pixels of the Rectangle or Polygon to Black.
+  const localVertices = await localCoordinates(sharedState.bounds, binaryImage, sharedState.vertices); const selectedConvexHull = await convexHull(localVertices);
+  const abstractedImage = await abstraction(binaryImage, selectedConvexHull); displayImage(abstractedImage);
+
+  // Step 5: Finding the Vertices of the Properties within the Polygon or Rectangle that the User has Drawn on the Map.
+
+  // Step 6: Using the Vertices of the Properties within the Convex Hull which the User Created, Create Convex Hulls for the Different Properties in the Area.
+
+  // Step 7: Choose a Pixel to be Reverse Geocoded from Each Convex Hull in the User Selected Area.
+
+}
+
+// Function to Create a Canvas which the Updated Image is Drawn onto when Processing an Image.
 function createCanvas(width, height) {const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height; return canvas.getContext('2d');}
 
-// Function to Load an Image.
+// Function to Load an Image from a Data URL.
 async function loadImage(source) {
-  return new Promise((resolve, reject) => {const img = new Image(); img.crossOrigin = 'Anonymous'; img.src = source; img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Failed to Load the Image!"));
-  });
+  const img = new Image(); img.crossOrigin = 'Anonymous'; img.src = source;
+  return new Promise((resolve, reject) => {img.onload = () => resolve(img); img.onerror = () => reject(new Error("Failed to Load the Image!"));})
 }
 
-// Function to Display an Image in a New Browser Window. *** USED ONLY FOR TESTING *** -< PROBLEM EXISTS HERE!!!
-function displayImage(source, windowName = 'Image Viewer', width = 800, height = 600) {
-  const newWindow = window.open('', windowName, 'width=${width},height=${height}'); if (!newWindow) {new Error("Failed to Open a New Window!"); return;}
-  const linkCSS = newWindow.document.createElement('link'); linkCSS.rel = 'stylesheet'; linkCSS.href = '../src/processing.css';
-  const img = newWindow.document.createElement('img'); img.src = source; img.alt = 'Image'; newWindow.document.head.appendChild(linkCSS);
-  newWindow.document.body.appendChild(img);
+// Function used in Testing to Display an Image in a New Browser Window.
+function displayImage(image, windowName = 'Image Viewer', width = 800, height = 600) {
+  const newWindow = window.open('', windowName, `width=${width},height=${height}`); if (!newWindow) {throw new Error("Failed to Open a New Window!"); return;}
+  const doc = newWindow.document; doc.head.innerHTML = `<link rel="stylesheet" href="../src/processing.css">`;
+  doc.body.innerHTML = '`<img src="${source}" alt="Image">`;'
 }
 
-
-// Function to Add a Dot on the Image at a Specified Coordinate.
-async function addDot(source, xCoordinate, yCoordinate) {
-  const img = await loadImage(source); const canvas = createCanvas(img.width, img.height); canvas.drawImage(img, 0, 0); canvas.fillStyle('blue'); canvas.beginPath();
-  canvas.arc(xCoordinate, yCoordinate, 10, 0, 2 * Math.PI); canvas.fill(); return canvas.canvas.toDataURL();
+// Function to Convert Geographical Coordinates to Pixel Coordinates.
+function localCoordinates(bounds, image, vertices) {
+  const {xmin, ymin, xmax, ymax} = bounds; return vertices.map(([longitude, latitude]) => {
+    const x = ((lon - minLon) / (maxLon - minLon)) * width; const y = height - ((lat - minLat) / (maxLat - minLat)) * height; return [x, y];
+  })
 }
 
-// Step 1: Convert the Image to a Greyscale Image.  Below is a Function to Convert the Image to a Greyscale Image.
+function cross(o, a, b) {return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);} // Function to Calculate the Cross Product of Vectors OA and OB.
+
+// Function to Create a Convex Hull from a Set of Vertices.
+async function convexHull(vertices) {
+  console.log("Vertices", vertices.map(vertex => JSON.stringify(vertex)));
+
+  // Checking if the Hull is Already Convext and Sorting the Vertices Lexicographically.
+  if (vertices.length <= 3) {return vertices;} vertices.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
+
+  // Building the Lower Hull.
+  const lowerHull = []; for (const vertex of vertices) {
+    while (lowerHull.length >= 2 && cross(lowerHull[lowerHull.length - 2], lowerHull[lowerHull.length - 1], vertex) <= 0) {lowerHull.pop();} lowerHull.push(vertex);
+  }
+
+  // Building the Upper Hull.
+  const upperHull = []; for (let i = vertices.length - 1; i >= 0; i--) {
+    const vertex = vertices[i];
+    while (upperHull.length >= 2 && cross(upperHull[upperHull.length - 2], upperHull[upperHull.length - 1], vertex) <= 0) {upperHull.pop()} upperHull.push(vertex);
+  }
+
+  lowerHull.pop(); upperHull.pop(); // Removing the Last Point of the Upper and Lower Hull because the Point is Repeated at the Beginning of the Other Half.
+
+  const convexHull = lowerHull.concat(upperHull); return convexHull; // Combining the Upper and Lower Hull to Form the Convex Hull and Returning the Convex Hull.
+
+}
+
+// Function to Check if a Coordinate is Inside or Outside a Convex Hull.  Using the Winding Number Algorithm to Test whether a Point is Inside the Convex Hull.
+function windingNumberAlgorithm(convexHull, point) {
+
+  let windingNumber = 0; for (let i = 0; i < convexHull.length; i++) { // Initialising the Winding Number and Iterating through Each Vertex in the Convex Hull.
+    const a = convexHull[i]; const b = hull[(i + 1) % convexHull.length]; // Getting the Current Vertex and Next Vertex in the Convex Hull to Examine.
+
+    // Checking if the Point lies on the Edge of the Convex Hull if so, we Consider the Point to be Inside the Convex Hull.
+    if (cross(a, b, point) == 0 && Math.min(a[0], b[0]) <= point[0] && point[0] <= Math.max(a[0], b[0]) && Math.min(a[1], b[1]) <= point[1] &&
+    point[1] <= Math.max(a[1], b[1])) {return true;}
+
+    // Calculating the Angle between the Two Vectors (Point -> a) and (Point -> b).
+    let deltaAngle = Math.atan2(b[1] - point[1], b[0] - point[0]) - Math.atan2(a[1] - point[1], a[0] - point[0]);
+
+    // Adjust the Angle to Ensure that it Remains in the Range [-π, π] and Accumulating the Signed Angle Difference.
+    if (deltaAngle > Math.PI) {deltaAngle -= 2 * Math.PI;} if (deltaAngle < -Math.PI) {deltaAngle += 2 * Math.PI;} windingNumber += deltaAngle;
+
+    // If the Absolute Value of the Winding Number is Greater than a Threshold (1e-6) then the Point is Inside the Convex Hull.
+    return Math.abs(windingNumber) > 1e-6;
+
+  }
+}
+
+// Function to Remove the Roads in an Image.
+async function removeRoads(source) {
+
+  // Loading the Image, Creating the Canvas, Drawing the Image on the Canvas and Getting the Image Data from the Canvas.
+  const img = await loadImage(source); const canvas = createCanvas(img.width, img.height); canvas.drawImage(img, 0, 0);
+  const imageData = canvas.getImageData(0, 0, canvas.canvas.width, canvas.canvas.height); const data = imageData.data;
+
+  // Looping through the Image Data and Removing any Roads in the Image which May Cause Unexpected Results during Reverse Geocoding.
+  for (let i = 0; i < data.length; i += 4) {if (data[i] === data[i + 1] && data[i + 1] === data[i + 2]) {data[i] = data[i + 1] = data[i + 2] = 0;}}
+
+  // Placing the Updated Image without Roads onto the Canvas and Returning the Updated Image as a Data URL.
+  canvas.putImageData(imageData, 0, 0); return canvas.canvas.toDataURL();
+
+}
+
+// Function to Convert an Image to a Greyscale Image.
 async function greyscale(source) {
 
   // Loading the Image, Creating the Canvas, Drawing the Image on the Canvas and Getting the Image Data from the Canvas.
@@ -39,9 +120,41 @@ async function greyscale(source) {
 
   // Placing the Greyscale Image onto the Canvas and Returing the Greyscale Image as a Data URL.
   canvas.putImageData(imageData, 0, 0); return canvas.canvas.toDataURL();
+
 }
 
-// Function which Controls the Process of Extracting the Addresses from the Screenshot of the Properties.
-async function message(sharedState, callback) {const myImage = sharedState.dataURL; displayImage(await greyscale(myImage));}
+// Function to Convert a Greyscale Image to a Binary Image.
+async function binary(greyscale) {
+
+  // Loading the Image, Creating the Canvas, Drawing the Image on the Canvas and Getting the Image Data from the Canvas.
+  const img = await loadImage(greyscale); const canvas = createCanvas(img.width, img.height); canvas.drawImage(img, 0, 0);
+  const imageData = canvas.getImageData(0, 0, canvas.canvas.width, canvas.canvas.height); const data = imageData.data;
+
+  // Looping through the Image Data and Converting each Pixel to a Binary Pixel.
+  for (let i = 0; i < data.length; i += 4) {const grey = data[i]; const binary = grey >= threshold ? 255 : 0; data[i] = data[i + 1] = data[i + 2] = binary;}
+
+  // Placing the Binary Image onto the Canvas and Returning the Binary Image as a Data URL.
+  canvas.putImageData(imageData, 0, 0); return canvas.canvas.toDataURL();
+
+}
+
+// Function to Create an Abstraction around the Processing of the Properties by Ignoring Properties Outside of the User Selected Area.
+async function abstraction(binary, convexHull) {
+
+  // Loading the Image, Creating the Canvas, Drawing the Image on the Canvas and Getting the Image Data from the Canvas.
+  const img = await loadImage(greyscale); const canvas = createCanvas(img.width, img.height); canvas.drawImage(img, 0, 0);
+  const imageData = canvas.getImageData(0, 0, canvas.canvas.width, canvas.canvas.height); const data = imageData.data;
+
+  // Looping through the Image Data and Changing the Colour of Pixels outside of the User Selected Area to Black.
+  for (let i = 0; i < data.length; i += 4) {
+    const x = (i / 4) % img.width; const y = Math.floor(i / 4 / img.width); const point = [x,y]; if (!windingNumberAlgorithm(convexHull, point)) {
+      data[i] = data[i + 1] = data[i + 2] = 0;
+    }
+  }
+
+  // Placing the Binary Image onto the Canvas and Returning the Binary Image as a Data URL.
+  canvas.putImageData(imageData, 0, 0); return canvas.canvas.toDataURL();
+
+}
 
 export default message;
