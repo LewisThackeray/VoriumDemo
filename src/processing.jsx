@@ -9,14 +9,7 @@ async function message(sharedState, callback) {
   const binaryImage = await binary(greyscaleImage); // Step 3: Converting the Greyscale Image to a Binary Image.
 
   // Step 4: Creating an Abstraction around the Image being Processed by Changing the Colour of all the Pixels of the Rectangle or Polygon to Black.
-  console.log("Global Coordinates: " + JSON.stringify(sharedState.vertices));
-  const localVertices = await localCoordinates(sharedState.bounds, binaryImage, sharedState.vertices);
-  console.log("Local Coordinates: " + JSON.stringify(localVertices));
-
-  const selectedConvexHull = await convexHull(localVertices); console.log("Convex Hull: " + JSON.stringify(selectedConvexHull));
-
-  const testPoint = [500,500]; const result = windingNumberAlgorithm(selectedConvexHull, testPoint); console.log("Result: " + result);
-
+  const localVertices = await localCoordinates(sharedState.bounds, binaryImage, sharedState.vertices); const selectedConvexHull = await convexHull(localVertices);
   const abstractedImage = await abstraction(binaryImage, selectedConvexHull); displayImage(abstractedImage);
 
   // Step 5: Finding the Vertices of the Properties within the Polygon or Rectangle that the User has Drawn on the Map.
