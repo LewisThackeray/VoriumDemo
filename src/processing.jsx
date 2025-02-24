@@ -9,8 +9,8 @@ async function message(sharedState, callback) {
   const binaryImage = await binary(greyscaleImage); // Step 3: Converting the Greyscale Image to a Binary Image.
 
   // Step 4: Creating an Abstraction around the Image being Processed by Changing the Colour of all the Pixels of the Rectangle or Polygon to Black.
-  const localVertices = await localCoordinates(sharedState.bounds, binaryImage, sharedState.vertices); const selectedConvexHull = await convexHull(localVertices);
-  const abstractedImage = await abstraction(binaryImage, selectedConvexHull); displayImage(abstractedImage);
+  const localVertices = await localCoordinates(sharedState.bounds, binaryImage, sharedState.vertices);
+  const abstractedImage = await abstraction(binaryImage, localVertices); displayImage(abstractedImage); 
 
   // Step 5: Finding the Vertices of the Properties within the Polygon or Rectangle that the User has Drawn on the Map.
 
@@ -47,60 +47,12 @@ function localCoordinates(bounds, imageDataURL, vertices) {
     });
 }
 
-function cross(o, a, b) {return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);} // Function to Calculate the Cross Product of Vectors OA and OB.
-
-// Function to Create a Convex Hull from a Set of Vertices.
-async function convexHull(vertices) {
-
-  const points = vertices.map(vertex => [vertex.x, vertex.y]); // Converting the Vertices to x,y Format if they are Objects.
-
-  // Checking if the Hull is Already Convex and Sorting the Vertices Lexicographically.
-  if (points.length <= 3) {return vertices;} points.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
-
-  // Building the Lower Hull.
-  const lowerHull = []; for (const point of points) {
-    while (lowerHull.length >= 2 && cross(lowerHull[lowerHull.length - 2], lowerHull[lowerHull.length - 1], point) <= 0) {lowerHull.pop();} lowerHull.push(point);
-  }
-
-  // Building the Upper Hull.
-  const upperHull = []; for (let i = points.length - 1; i >= 0; i--) {
-    const point = points[i];
-    while (upperHull.length >= 2 && cross(upperHull[upperHull.length - 2], upperHull[upperHull.length - 1], point) <= 0) {upperHull.pop();} upperHull.push(point);
-  }
-
-  lowerHull.pop(); upperHull.pop(); // Removing the Last Point from the Lower Hull and the Upper Hull as they are Duplicated at the Start of the Other Hull.
-
-  // Combining the Upper and Lower Hull to Form the Convex Hull and Converting Back to x,y Format if Necessary.
-  const convexHullPoints = lowerHull.concat(upperHull); const convexHullVertices = convexHullPoints.map(point => ({ x: point[0], y: point[1] }));
-
-  return convexHullVertices; // Returning the Convex Hull to the Caller.
-
-}
-
-function windingNumberAlgorithm(convexHull, point) {
-
-  // Initialising the Winding Number and Converting the Convex Hull Vertices to x,y Format if they are Objects.
-  let windingNumber = 0; const hullPoints = convexHull.map(vertex => [vertex.x, vertex.y]);
-
-  // Iterating through Each Vertex in the Convex Hull and Checking if the Point lies within the Conex Hull.
-  for (let i = 0; i < hullPoints.length; i++) {
-
-    const a = hullPoints[i]; const b = hullPoints[(i + 1) % hullPoints.length]; // Getting the Current and Next Vertex in the Convex Hull to Process.
-
-    // If the Point is on the Edge of the Convex Hull, we Class the Point as within the Convex Hull.
-    if (cross(a, b, point) === 0 && Math.min(a[0], b[0]) <= point[0] && point[0] <= Math.max(a[0], b[0]) &&
-        Math.min(a[1], b[1]) <= point[1] && point[1] <= Math.max(a[1], b[1])) {return true;}
-
-    // Calculate the Angle between the Vectors (point -> a) and (point -> b).
-    let deltaAngle = Math.atan2(b[1] - point[1], b[0] - point[0]) - Math.atan2(a[1] - point[1], a[0] - point[0]);
-
-    // Adjust the Angle to Ensure it Remains in the Range [-π, π] and Accumulating the Signed Angle Difference.
-    if (deltaAngle > Math.PI) {deltaAngle -= 2 * Math.PI;} else if (deltaAngle < -Math.PI) {deltaAngle += 2 * Math.PI;} windingNumber += deltaAngle;
-
-  }
-
-  return Math.abs(windingNumber) > 1e-6; // If the Absolute Value of the Winding Number is Greater than the Threshold (2π), the Point is Inside the Convex Hull.
-
+// Function which uses the Ray Casting Algorithm to Determine whether a Point lies inside the Polygon or Rectangle which the User has Drawn.
+function rayCastingAlgorithm(vertices, point) {
+  let inside = false; for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+    const xi = vertices[i].x; const yi = vertices[i].y; const xj = vertices[j].x; const yj = vertices[j].y;
+    const intersect = ((yi > point.y) !== (yj > point.y)) && (point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi); if (intersect) {inside = !inside;}
+  } return inside;
 }
 
 // Function to Remove the Roads in an Image.
@@ -151,7 +103,7 @@ async function binary(greyscale) {
 }
 
 // Function to Create an Abstraction around the Processing of the Properties by Ignoring Properties Outside of the User Selected Area.
-async function abstraction(binary, convexHull) {
+async function abstraction(binary, vertices) {
 
   // Loading the Image, Creating the Canvas, Drawing the Image on the Canvas and Getting the Image Data from the Canvas.
   const img = await loadImage(binary); const canvas = createCanvas(img.width, img.height); canvas.drawImage(img, 0, 0);
@@ -159,7 +111,7 @@ async function abstraction(binary, convexHull) {
 
   // Looping through the Image Data and Changing the Colour of Pixels outside of the User Selected Area to Black.
   for (let i = 0; i < data.length; i += 4) {
-    const x = (i / 4) % img.width; const y = Math.floor(i / 4 / img.width); const point = [x,y]; if (!windingNumberAlgorithm(convexHull, point)) {
+    const x = (i / 4) % img.width; const y = Math.floor(i / 4 / img.width); const point = {x: x, y: y}; if (!rayCastingAlgorithm(vertices, point)) {
       data[i] = data[i + 1] = data[i + 2] = 0;
     }
   }
