@@ -12,15 +12,23 @@ async function message(sharedState, callback) {
 
   // STEP 4: Find the Corners of the Properties in the Polygon or Rectangle using the Harris Corner Detection Algorithm.
 
-  // Pre-Processing the Image to Reduce Noise by Applying a Gaussian Blur, then Converting the Image to a Binary Image and then back to a Greyscale Image.
-  const preProcessedImage = await gaussianBlur(greyscaleImage); const pre = await binary(preProcessedImage); const cleanedGreyscale = await greyscale(pre);
+  // Pre-Processing the Image by Applying a Gaussian Blur and Removing Outliers, then Converting the Image to a Binary Image and then back to a Greyscale Image.
+  const blurred = await gaussianBlur(greyscaleImage); const blurredBinary = await binary(blurred); const cleanedImage = await unionFind(blurredBinary, 50);
 
-  const corners = await harrisCornerDetectionAlgorithm(cleanedGreyscale); // Applying the Harris Corner Detection Algorithm.
-  console.log("Corners: " + JSON.stringify(corners.corners));
+  const corners = await harrisCornerDetectionAlgorithm(cleanedImage); // Applying the Harris Corner Detection Algorithm.
 
   // STEP 5: Create a Convex Hull for Each Property in the Polygon or Rectangle which the User has Drawn on the Map.
-  const groupedCorners = await traceContours(pre, corners.corners); // NEED TO GET THE CONVEX HULL FUNCTION WORKING!!!!
+  const binaryImage = await binary(cleanedImage); const groupedCorners = await traceContours(binaryImage, corners.corners);
+  const convexHulls = []; for (let i = 0; i < groupedCorners.length; i++) {const polygon = await convexHull(groupedCorners[i]); convexHulls.push(polygon);}
 
+  // Testing the Convex Hull Method by Drawing the Convex Hulls on the Image.
+  const img = await loadImage(binaryImage); const canvas = createCanvas(img.width, img.height); canvas.drawImage(img, 0, 0); canvas.strokeStyle = 'red';
+  canvas.fillStyle = 'rgba(255, 0, 0, 0.3)'; canvas.lineWidth = 2; convexHulls.forEach(hull => {
+    if (hull.length > 2) {
+      canvas.beginPath(); canvas.moveTo(hull[0].x, hull[0].y); for (let i = 1; i < hull.length; i++) {canvas.lineTo(hull[i].x, hull[i].y);} canvas.closePath();
+      canvas.fill(); canvas.stroke();
+    }
+  }); const imageWithHulls = canvas.canvas.toDataURL(); displayImage(imageWithHulls);
 
   // STEP 6: Choose a x,y Point within Each Convex Hull for Reverse Geocoding.
 }
@@ -208,8 +216,59 @@ async function harrisCornerDetectionAlgorithm(greyscale) {
     }} if (isMax) {corners.push({x, y, response: R[idx]});}
   }}}
 
+  for (let corner of corners) {const index = (corner.y * width + corner.x) * 4; data[index] = data[index + 3] = 255;  data[index + 1] = data[index + 2] = 0;}
+
   // Placing the Binary Image onto the Canvas and Returning the Binary Image as a Data URL.
   canvas.putImageData(imageData, 0, 0); return {corners: corners, image: canvas.canvas.toDataURL()};
+
+}
+
+// Function to Remove Outlier White Pixels, using a Simple Union-Find Approach to Clean the Data, Before Finding the Corners of the Properties in the Area.
+async function unionFind(binaryImage, minArea = 50) {
+
+  const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const img = new Image(); // Creating a Canvas Dynamically for Processing.
+
+  // Function to Find the Root Label of a Component.
+  function find(parent, x) {if (!parent[x]) parent[x] = x; if (parent[x] !== x) parent[x] = find(parent, parent[x]); return parent[x];}
+
+  function union(parent, x, y) {parent[find(parent, x)] = find(parent, y);} // Function to Merge Two Components by Setting One's Parent to the Other's Parent.
+
+  return new Promise((resolve, reject) => {
+    img.onload = function() {
+
+      canvas.width = img.width; canvas.height = img.height; ctx.drawImage(img,0,0); // Set the Canvas Dimensions to Match the Image and Draw the Image on the Canvas.
+
+      const imageData = ctx.getImageData(0,0,canvas.width,canvas.height); const data = imageData.data; // Extracting the Pixel Data from the Canvas.
+
+      // Creating a Binary Array from the Image Data for Processing.
+      const binary = new Uint8Array(canvas.width * canvas.height);
+      for (let i = 0; i < data.length; i += 4) {const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3; binary[i / 4] = brightness > 127 ? 255 : 0;}
+
+      // Labelling the Connected Components using a Two-Pass Union-Find Algorithm.
+      const labels = new Uint32Array(canvas.width * canvas.height); const parent = []; let nextLabel = 1; for (let i = 0; i < data.length; i += 4) {
+        const x = (i / 4) % img.width; const y = Math.floor(i / 4 / img.width); const idx = y * canvas.width + x; if (binary[idx] === 255) {
+          const neighbours = [(y > 0 ? labels[idx - canvas.width] : 0), (x > 0 ? labels[idx - 1] : 0)].filter(n => n > 0);
+          if (neighbours.length === 0) {labels[idx] = nextLabel++; parent[labels[idx]] - labels[idx];} else {
+            let minLabel = Math.min(...neighbours); labels[idx] = minLabel; for (let n of neighbours) {union(parent, n, minLabel);}
+          }
+        }
+      }
+
+      const sizes = new Map(); for (let i = 0; i < labels.length; i++) {
+        if (labels[i] > 0) {labels[i] = find(parent, labels[i]); sizes.set(labels[i], (sizes.get(labels[i]) || 0) + 1);}
+      }
+
+      // Filtering Out the Outliers.
+      const output = new Uint8Array(binary.length);
+      for (let i = 0; i < labels.length; i++) {if (labels[i] > 0 && sizes.get(labels[i]) >= minArea) {output[i] = 255;} else {output[i] = 0;}}
+
+      // Updating the Canvas with the Cleaned Binary Image.
+      for (let i = 0; i < data.length; i += 4) {const val = output[i / 4]; data[i] = data[i + 1] = data[i + 2] = val; data[i + 3] = 255;}
+      ctx.putImageData(imageData, 0, 0); resolve(canvas.toDataURL());
+
+    }; img.src = binaryImage;
+
+  });
 }
 
 // Function to Group Corners Detected by the Harris Corner Detection Method into the White Polygons (Properties) in the Input Image using their Trace Contours.
