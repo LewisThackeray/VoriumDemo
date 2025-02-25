@@ -1,7 +1,5 @@
 const threshold = 238; // Creating a Threshold which is used to Create the Greyscale Image into a Binary Image.
 
-// TO REDUCE THE AMOUNT OF NOISE I NEED TO APPLY A GAUSSIAN BLUR AND THEN REMOVE ANY OUTLIERS.
-
 async function message(sharedState, callback) {
 
   const inputImage = sharedState.dataURL; const noRoadsImage = await removeRoads(inputImage); // STEP 1: Removing the Roads from the Input Image.
@@ -17,11 +15,12 @@ async function message(sharedState, callback) {
   // Pre-Processing the Image to Reduce Noise by Applying a Gaussian Blur, then Converting the Image to a Binary Image and then back to a Greyscale Image.
   const preProcessedImage = await gaussianBlur(greyscaleImage); const pre = await binary(preProcessedImage); const cleanedGreyscale = await greyscale(pre);
 
-  const corners = await harrisCornerDetectionAlgorithm(cleanedGreyscale); displayImage(corners.image); // Applying the Harris Corner Detection Algorithm.
-
-  console.log("Corners: " + JSON.stringify(corners.corners)); 
+  const corners = await harrisCornerDetectionAlgorithm(cleanedGreyscale); // Applying the Harris Corner Detection Algorithm.
+  console.log("Corners: " + JSON.stringify(corners.corners));
 
   // STEP 5: Create a Convex Hull for Each Property in the Polygon or Rectangle which the User has Drawn on the Map.
+  const groupedCorners = await traceContours(pre, corners.corners); console.log("Polygons: " + JSON.stringify(groupedCorners));
+
 
   // STEP 6: Choose a x,y Point within Each Convex Hull for Reverse Geocoding.
 }
@@ -209,10 +208,50 @@ async function harrisCornerDetectionAlgorithm(greyscale) {
     }} if (isMax) {corners.push({x, y, response: R[idx]});}
   }}}
 
-  // Drawing the Corners on the Image for Visualisation.
-  corners.forEach(corner => {const idx = (corner.y * width + corner.x) * 4; data[idx] = 255; data[idx + 1] = 0; data[idx + 2] = 0; data[idx + 3] = 255;});
-
+  // Placing the Binary Image onto the Canvas and Returning the Binary Image as a Data URL.
   canvas.putImageData(imageData, 0, 0); return {corners: corners, image: canvas.canvas.toDataURL()};
+}
+
+// Function to Group Corners Detected by the Harris Corner Detection Method into the White Polygons (Properties) in the Input Image using their Trace Contours.
+async function traceContours(source, corners) {
+
+  // Loading the Greyscale Image, Creating the Canvas, Drawing the Image on the Canvas and Getting the Image Data from the Canvas.
+  const img = await loadImage(source); const canvas = createCanvas(img.width, img.height); canvas.drawImage(img, 0, 0);
+  const imageData = canvas.getImageData(0, 0, canvas.canvas.width, canvas.canvas.height); const data = imageData.data;
+
+  // Converting the Image Data into a 2D Binary Array (1 for White Pixels, 0 for Black Pixels).
+  const binary = new Uint8Array(img.width * img.height); for (let i = 0; i < data.length; i += 4) {binary[i / 4] = data[i] === 255 ? 1 : 0;}
+
+  // Creating Variables for the Width and Height of the Image and an Array and Set for use in the Moore-Neighbour Tracing Algorithm to Find Contours.
+  const width = img.width; const height = img.height; const contours = []; const visited = new Set();
+
+  function getPixel(x, y) {return (x >= 0 && x < img.width && y >= 0 && y < img.height) ? binary[y * img.width + x] : 0;} // Returning the Binary Value of a Pixel.
+
+  // Function to Find the Next Boundary Pixel in the Contour.
+  function findNextBoundary(x, y) {
+    const directions = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]; for (let i = 0; i < 8; i++) {
+      const [dx, dy] = directions[i]; const nx = x + dx; const ny = y + dy; if (getPixel(nx, ny) === 1 && !visited.has(`${nx},${ny}`)) {return [nx, ny];}
+    }; return null;
+  }
+
+  // Iterate through Every Pixel in the Image to Detect Contours.
+  for (let i = 0; i < data.length; i += 4) {
+    const x = (i / 4) % img.width; const y = Math.floor(i / 4 / img.width); const idx = y * width + x; if (binary[idx] === 1 && !visited.has(`${x},${y}`)) {
+      const contour = []; let currentX = x; let currentY = y; const start = [x, y]; do {
+        visited.add(`${currentX},${currentY}`); contour.push({ x: currentX, y: currentY }); const next = findNextBoundary(currentX, currentY); if (!next) {break;}
+        [currentX, currentY] = next;
+      } while (!(currentX === start[0] && currentY === start[1]) && contour.length < 10000); if (contour.length > 3) {contours.push(contour);}
+    }
+  }
+
+  // Grouping the Corners which were Detected using the Harris Corner Detection Method.
+  const groupedCorners = contours.map(contour => {
+    const cornersInContour = corners.filter(corner => {
+      return contour.some(point => {const dist = Math.sqrt((corner.x - point.x) ** 2 + (corner.y - point.y) ** 2); return dist < 5;});
+    }); return cornersInContour;
+  }).filter(group => group.length > 0);
+
+  return groupedCorners;
 }
 
 export default message;
