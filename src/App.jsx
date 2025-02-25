@@ -170,7 +170,7 @@ function App() {
                     viewRef.current.takeScreenshot().then((screenshot) => {
                         const img = new Image(); img.src = screenshot.dataUrl; img.onload = () => {
                             ctx.drawImage(img, 0, 0); sharedState.dataURL = canvas.toDataURL('image/png'); sharedState.bounds = { xmin, ymin, xmax, ymax };
-                            message(sharedState, (downsampledCoordinates) => {setCoordinates(downsampledCoordinates);}); setShowProcessingScreen(true);
+                            message(sharedState, (pointsToReverseGeocode) => {setCoordinates(pointsToReverseGeocode);}); setShowProcessingScreen(true);
                         }; resolve();
                     }).catch((error) => {showErrorPopup("Screenshot couldn't be taken!");});
                 });

@@ -1,5 +1,8 @@
+import getAddresses from './reverseGeocoding.jsx'; // Importing the Necessary Modules for my Implementation.
+
 const threshold = 238; // Creating a Threshold which is used to Create the Greyscale Image into a Binary Image.
 
+// Function Responsible for Controlling the Flow of Data in this File, Extracting the Coordinates to be Processed from the Input Image.
 async function message(sharedState, callback) {
 
   const inputImage = sharedState.dataURL; const noRoadsImage = await removeRoads(inputImage); // STEP 1: Removing the Roads from the Input Image.
@@ -21,16 +24,17 @@ async function message(sharedState, callback) {
   const binaryImage = await binary(cleanedImage); const groupedCorners = await traceContours(binaryImage, corners.corners);
   const convexHulls = []; for (let i = 0; i < groupedCorners.length; i++) {const polygon = await convexHull(groupedCorners[i]); convexHulls.push(polygon);}
 
-  // Testing the Convex Hull Method by Drawing the Convex Hulls on the Image.
-  const img = await loadImage(binaryImage); const canvas = createCanvas(img.width, img.height); canvas.drawImage(img, 0, 0); canvas.strokeStyle = 'red';
-  canvas.fillStyle = 'rgba(255, 0, 0, 0.3)'; canvas.lineWidth = 2; convexHulls.forEach(hull => {
-    if (hull.length > 2) {
-      canvas.beginPath(); canvas.moveTo(hull[0].x, hull[0].y); for (let i = 1; i < hull.length; i++) {canvas.lineTo(hull[i].x, hull[i].y);} canvas.closePath();
-      canvas.fill(); canvas.stroke();
+  // STEP 6: Choosing 3 Random a x,y Points from Each Convex Hull and Converting them to a Longitude, Latitude Format for Reverse Geocoding.
+  const selectedPoints = []; convexHulls.forEach(hull => {
+    if (hull.length < 3) {selectedPoints.push(...hull);} else {const copy = [...hull]; const random = []; const randomIndex = Math.floor(Math.random() * copy.length);
+      random.push(copy[randomIndex]); copy.splice(randomIndex, 1); selectedPoints.push(...random);
     }
-  }); const imageWithHulls = canvas.canvas.toDataURL(); displayImage(imageWithHulls);
+  });
 
-  // STEP 6: Choose a x,y Point within Each Convex Hull for Reverse Geocoding.
+  const pointsToReverseGeocode = await globalCoordinates(sharedState.bounds, inputImage, selectedPoints);
+
+  if (callback) {callback(pointsToReverseGeocode);}
+
 }
 
 // Function to Create a Canvas which the Updated Image is Drawn onto when Processing an Image.
@@ -42,22 +46,24 @@ async function loadImage(source) {
   return new Promise((resolve, reject) => {img.onload = () => resolve(img); img.onerror = () => reject(new Error("Failed to Load the Image!"));})
 }
 
-// Function used in Testing to Display an Image in a New Browser Window.
-function displayImage(image, windowName = 'Image Viewer', width = 800, height = 600) {
-  const newWindow = window.open('', windowName, `width=${width},height=${height}`); if (!newWindow) {throw new Error("Failed to Open a New Window!"); return;}
-  const doc = newWindow.document; doc.head.innerHTML = `<link rel="stylesheet" href="../src/processing.css">`;
-  doc.body.innerHTML = `<img src="${image}" alt="Image">`;
+// Function to Convert Coordinates from Longitude, Latitude Coordinates to Pixel Coordinates in the Image.
+function localCoordinates(bounds, image, vertices) {
+    const {xmin, ymin, xmax, ymax} = bounds; const pixelCoordinates = []; const img = new Image(); img.src = image; return new Promise((resolve) => {
+        img.onload = function() {vertices.forEach(function(vertex) {
+                const {longitude, latitude} = vertex; const x = ((longitude - xmin) / (xmax - xmin)) * img.width;
+                const y = ((ymax - latitude) / (ymax - ymin)) * img.height; pixelCoordinates.push({ x, y });
+        }); resolve(pixelCoordinates);};
+    });
 }
 
-// Function to Convert Coordinates from Longitude, Latitude Coordinates to Pixel Coordinates in the Image.
-function localCoordinates(bounds, imageDataURL, vertices) {
-    const { xmin, ymin, xmax, ymax } = bounds; const pixelCoordinates = []; const img = new Image(); img.src = imageDataURL; return new Promise((resolve) => {
-        img.onload = function() {vertices.forEach(function(vertex) {
-                const { longitude, latitude } = vertex; const x = ((longitude - xmin) / (xmax - xmin)) * img.width;
-                const y = ((ymax - latitude) / (ymax - ymin)) * img.height; pixelCoordinates.push({ x, y });
-            }); resolve(pixelCoordinates);
-        };
-    });
+// Function to Convert Pixel Coordinates from the Image to Longitude, Latitude Coordinates.
+function globalCoordinates(bounds, image, coordinates) {
+  const {xmin, ymin, xmax, ymax} = bounds; const geographicalCoordinates = []; const img = new Image(); img.src = image; return new Promise((resolve) => {
+    img.onload = function() {coordinates.forEach(function(coordinate) {
+      const {x,y} = coordinate; const longitude = ((x * (xmax - xmin)) / img.width) + xmin; const latitude = ymax - ((y * (ymax - ymin)) / img.height);
+      geographicalCoordinates.push({longitude, latitude});
+    }); resolve(geographicalCoordinates);};
+  });
 }
 
 // Function to Remove the Roads in an Image.
