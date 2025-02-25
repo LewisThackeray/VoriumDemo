@@ -4,21 +4,26 @@ const threshold = 238; // Creating a Threshold which is used to Create the Greys
 
 async function message(sharedState, callback) {
 
-  const inputImage = sharedState.dataURL; const noRoadsImage = await removeRoads(inputImage); // Step 1: Removing the Roads from the Input Image.
+  const inputImage = sharedState.dataURL; const noRoadsImage = await removeRoads(inputImage); // STEP 1: Removing the Roads from the Input Image.
 
-  // Step 2: Creating an Abstraction around the Image being Processed by Changing the Colour of all the Pixels Outside of the Polygon or Rectangle to Black.
+  // STEP 2: Creating an Abstraction around the Image being Processed by Changing the Colour of all the Pixels Outside of the Polygon or Rectangle to Black.
   const vertices = await localCoordinates(sharedState.bounds, noRoadsImage, sharedState.vertices); const abstractedImage = await abstraction(noRoadsImage, vertices);
 
-  // Step 3: Convert the Image into a Greyscale Image for use in the Harris Corner Detection Algorithm.
+  // STEP 3: Convert the Image into a Greyscale Image for use in the Harris Corner Detection Algorithm.
   const greyscaleImage = await greyscale(abstractedImage);
 
-  // Step 4: Find the Corners of the Properties in the Polygon or Rectangle using the Harris Corner Detection Algorithm.
-  const preProcessedImage = gaussianBlur(greyscaleImage); // Pre-Processing the Image to Reduce Noise.
-  const corners = await harrisCornerDetectionAlgorithm(preProcessedImage); displayImage(corners.image);
+  // STEP 4: Find the Corners of the Properties in the Polygon or Rectangle using the Harris Corner Detection Algorithm.
 
-  // Step 5: Create a Convex Hull for Each Property in the Polygon or Rectangle which the User has Drawn on the Map.
+  // Pre-Processing the Image to Reduce Noise by Applying a Gaussian Blur, then Converting the Image to a Binary Image and then back to a Greyscale Image.
+  const preProcessedImage = await gaussianBlur(greyscaleImage); const pre = await binary(preProcessedImage); const cleanedGreyscale = await greyscale(pre);
 
-  // Step 6: Choose a x,y Point within Each Convex Hull for Reverse Geocoding.
+  const corners = await harrisCornerDetectionAlgorithm(cleanedGreyscale); displayImage(corners.image); // Applying the Harris Corner Detection Algorithm.
+
+  console.log("Corners: " + JSON.stringify(corners.corners)); 
+
+  // STEP 5: Create a Convex Hull for Each Property in the Polygon or Rectangle which the User has Drawn on the Map.
+
+  // STEP 6: Choose a x,y Point within Each Convex Hull for Reverse Geocoding.
 }
 
 // Function to Create a Canvas which the Updated Image is Drawn onto when Processing an Image.
@@ -137,6 +142,21 @@ async function gaussianBlur(source) {
   for (let i = 0; i < data.length; i++) {data[i] = temp[i];} // Copying the Blurred Pixels from the Temporary Array Back to the Original Image Data.
 
   // Placing the Greyscale Image onto the Canvas and Returing the Greyscale Image as a Data URL.
+  canvas.putImageData(imageData, 0, 0); return canvas.canvas.toDataURL();
+
+}
+
+// Function to Convert a Greyscale Image to a Binary Image.
+async function binary(greyscale) {
+
+  // Loading the Image, Creating the Canvas, Drawing the Image on the Canvas and Getting the Image Data from the Canvas.
+  const img = await loadImage(greyscale); const canvas = createCanvas(img.width, img.height); canvas.drawImage(img, 0, 0);
+  const imageData = canvas.getImageData(0, 0, canvas.canvas.width, canvas.canvas.height); const data = imageData.data;
+
+  // Looping through the Image Data and Converting each Pixel to a Binary Pixel.
+  for (let i = 0; i < data.length; i += 4) {const grey = data[i]; const binary = grey >= threshold ? 255 : 0; data[i] = data[i + 1] = data[i + 2] = binary;}
+
+  // Placing the Binary Image onto the Canvas and Returning the Binary Image as a Data URL.
   canvas.putImageData(imageData, 0, 0); return canvas.canvas.toDataURL();
 
 }
