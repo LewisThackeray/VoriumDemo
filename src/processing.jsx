@@ -19,7 +19,7 @@ async function message(sharedState, callback) {
   console.log("Corners: " + JSON.stringify(corners.corners));
 
   // STEP 5: Create a Convex Hull for Each Property in the Polygon or Rectangle which the User has Drawn on the Map.
-  const groupedCorners = await traceContours(pre, corners.corners); console.log("Polygons: " + JSON.stringify(groupedCorners));
+  const groupedCorners = await traceContours(pre, corners.corners); // NEED TO GET THE CONVEX HULL FUNCTION WORKING!!!!
 
 
   // STEP 6: Choose a x,y Point within Each Convex Hull for Reverse Geocoding.
@@ -252,6 +252,36 @@ async function traceContours(source, corners) {
   }).filter(group => group.length > 0);
 
   return groupedCorners;
+}
+
+function cross(o, a, b) {return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);} // Function to Calculate the Cross Product of Vectors OA and OB.
+
+// Function to Create a Convex Hull from a Set of Vertices.
+async function convexHull(vertices) {
+
+  const points = vertices.map(vertex => [vertex.x, vertex.y]); // Converting the Vertices to x,y Format if they are Objects.
+
+  // Checking if the Hull is Already Convex and Sorting the Vertices Lexicographically.
+  if (points.length <= 3) {return vertices;} points.sort((a, b) => a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]);
+
+  // Building the Lower Hull.
+  const lowerHull = []; for (const point of points) {
+    while (lowerHull.length >= 2 && cross(lowerHull[lowerHull.length - 2], lowerHull[lowerHull.length - 1], point) <= 0) {lowerHull.pop();} lowerHull.push(point);
+  }
+
+  // Building the Upper Hull.
+  const upperHull = []; for (let i = points.length - 1; i >= 0; i--) {
+    const point = points[i];
+    while (upperHull.length >= 2 && cross(upperHull[upperHull.length - 2], upperHull[upperHull.length - 1], point) <= 0) {upperHull.pop();} upperHull.push(point);
+  }
+
+  lowerHull.pop(); upperHull.pop(); // Removing the Last Point from the Lower Hull and the Upper Hull as they are Duplicated at the Start of the Other Hull.
+
+  // Combining the Upper and Lower Hull to Form the Convex Hull and Converting Back to x,y Format if Necessary.
+  const convexHullPoints = lowerHull.concat(upperHull); const convexHullVertices = convexHullPoints.map(point => ({ x: point[0], y: point[1] }));
+
+  return convexHullVertices; // Returning the Convex Hull to the Caller.
+
 }
 
 export default message;
