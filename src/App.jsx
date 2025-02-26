@@ -3,7 +3,7 @@ import React, {useState, useEffect, useRef} from 'react'; import {CiZoomIn, CiZo
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils'; import Graphic from '@arcgis/core/Graphic'; import './App.css';
 import {IoMenu, IoCloseOutline} from 'react-icons/io5'; import Polyline from '@arcgis/core/geometry/Polyline'; import {loadModules} from 'esri-loader';
 import ReactDOM from 'react-dom/client'; import PopUp from './PopUp.jsx'; import {IoIosContact} from "react-icons/io"; import message from './processing.jsx';
-import LoadingScreen from './loadingScreen.jsx'
+import LoadingScreen from './loadingScreen.jsx'; import OptionsScreen from './optionsScreen.jsx';
 
 // This is a Shared State between App.jsx and Processing.jsx for Holding Coordinates and Tracking Progress.
 const sharedState = {vertices: [], dataURL: '', bounds: [], progress: 0};
@@ -24,6 +24,7 @@ function App() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth); const [isShowingLoadingScreen, setIsShowingLoadingScreen] = useState(false);
   const [isSketchDrawn, setIsSketchDrawn] = useState(false); const [isDrawing, setIsDrawing] = useState(false); const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isShowingButtons, setIsShowingButtons] = useState(false); const [isPopUpOpen, setIsPopUpOpen] = useState(false);
+  const [isShowingOptionsScreen, setIsShowingOptionsScreen] = useState(false);
 
   const [popUpTitle, setPopUpTitle] = useState(''); const [popUpMessage, setPopUpMessage] = useState(''); const [polygonPoints, setPolygonPoints] = useState([]);
   const[drawnGraphics, setDrawnGraphics] = useState([]); const [coordinates, setCoordinates] = useState([]);
@@ -178,8 +179,10 @@ function App() {
             });
         } catch (error) {showErrorPopup("Failed to capture the graphic. Please try again!");}
     } else {console.error("No graphics available to capture.");}
-    setIsShowingLoadingScreen(false);
   };
+
+  // Creating a Callback Function for when Reverse Geocoding is Complete
+  const handleLoadingComplete = () => {setIsShowingLoadingScreen(false); setIsShowingOptionsScreen(true);}
 
   // Handling the Processing of the Shape Drawn on the Map when the "Cancel" Button is Clicked.
   const handleCancelClick = () => {
@@ -250,7 +253,8 @@ function App() {
         </div>
       )}
       {isPopUpOpen && <PopUp closePopUp={() => setIsPopUpOpen(false)} title={popUpTitle} message={popUpMessage} />}
-      {isShowingLoadingScreen && <LoadingScreen coordinates={coordinates}/>}
+      {isShowingLoadingScreen && <LoadingScreen coordinates={coordinates} onLoadingComplete={handleLoadingComplete}/>}
+      {isShowingOptionsScreen && <OptionsScreen/>}
     </div>
   );
 }

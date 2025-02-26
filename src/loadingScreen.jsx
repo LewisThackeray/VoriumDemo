@@ -1,14 +1,14 @@
 import React, {useEffect, useState} from 'react'; import './loadingScreen.css'; // Importing the Necessary Modules for my Implementation.
 
 // Functional Component to Create the Loading Screen which is Displayed when Reverse Geocoding is being Performed on the Coordinates.
-const LoadingScreen = ({coordinates}) => {
+const LoadingScreen = ({coordinates, onLoadingComplete}) => {
   const [progress, setProgress] = useState(0); useEffect(() => {
     if (coordinates && coordinates.length > 0) {
       const updateInterval = 100; const increment = 100 / coordinates.length; const interval = setInterval(() => {setProgress((prevProgress) => {
-        if (prevProgress >= 100) {clearInterval(interval); return 100;} return prevProgress + increment;
+        if (prevProgress >= 100) {clearInterval(interval); onLoadingComplete(); return 100;} return prevProgress + increment;
       });}, updateInterval); return () => clearInterval(interval);
     } else {console.error("The Coordinates Array is Empty of Invalid!");}
-  }, [coordinates]);
+  }, [coordinates, onLoadingComplete]);
 
   return(
     <div className="loading-screen">
