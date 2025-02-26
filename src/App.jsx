@@ -3,6 +3,7 @@ import React, {useState, useEffect, useRef} from 'react'; import {CiZoomIn, CiZo
 import * as webMercatorUtils from '@arcgis/core/geometry/support/webMercatorUtils'; import Graphic from '@arcgis/core/Graphic'; import './App.css';
 import {IoMenu, IoCloseOutline} from 'react-icons/io5'; import Polyline from '@arcgis/core/geometry/Polyline'; import {loadModules} from 'esri-loader';
 import ReactDOM from 'react-dom/client'; import PopUp from './PopUp.jsx'; import {IoIosContact} from "react-icons/io"; import message from './processing.jsx';
+import LoadingScreen from './loadingScreen.jsx'
 
 // This is a Shared State between App.jsx and Processing.jsx for Holding Coordinates and Tracking Progress.
 const sharedState = {vertices: [], dataURL: '', bounds: [], progress: 0};
@@ -20,7 +21,7 @@ function mercatorYToLatitude(y) {return ((2 * Math.atan(Math.exp(y / earthRadius
 function App() {
 
   // Creating State and Reference Variables for Data Handling and Document Object Model (DOM) Manipulation.
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth); const [isShowingProcessingScreen, setIsShowingProcessingScreen] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth); const [isShowingLoadingScreen, setIsShowingLoadingScreen] = useState(false);
   const [isSketchDrawn, setIsSketchDrawn] = useState(false); const [isDrawing, setIsDrawing] = useState(false); const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isShowingButtons, setIsShowingButtons] = useState(false); const [isPopUpOpen, setIsPopUpOpen] = useState(false);
 
@@ -170,14 +171,14 @@ function App() {
                     viewRef.current.takeScreenshot().then((screenshot) => {
                         const img = new Image(); img.src = screenshot.dataUrl; img.onload = () => {
                             ctx.drawImage(img, 0, 0); sharedState.dataURL = canvas.toDataURL('image/png'); sharedState.bounds = { xmin, ymin, xmax, ymax };
-                            message(sharedState, (pointsToReverseGeocode) => {setCoordinates(pointsToReverseGeocode);}); setShowProcessingScreen(true);
+                            message(sharedState, (pointsToReverseGeocode) => {setCoordinates(pointsToReverseGeocode);}); setIsShowingLoadingScreen(true);
                         }; resolve();
                     }).catch((error) => {showErrorPopup("Screenshot couldn't be taken!");});
                 });
             });
         } catch (error) {showErrorPopup("Failed to capture the graphic. Please try again!");}
     } else {console.error("No graphics available to capture.");}
-    setIsShowingProcessingScreen(false);
+    setIsShowingLoadingScreen(false);
   };
 
   // Handling the Processing of the Shape Drawn on the Map when the "Cancel" Button is Clicked.
@@ -249,7 +250,7 @@ function App() {
         </div>
       )}
       {isPopUpOpen && <PopUp closePopUp={() => setIsPopUpOpen(false)} title={popUpTitle} message={popUpMessage} />}
-      {isShowingProcessingScreen && <ProcessingScreen coordinates={coordinates}/>}
+      {isShowingLoadingScreen && <LoadingScreen coordinates={coordinates}/>}
     </div>
   );
 }

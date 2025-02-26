@@ -26,7 +26,7 @@ async function getAddresses(coordinates) {
   } catch (error) {console.error("Reverse Geocoding Failed! " + error);}
 }
 
-// This Function is Responsible for Checking that the Addresses are in the Correct Format, and Making Corrections if Necessary.
+// Function Responsible for Checking that the Addresses are in the Correct Format, and Making Corrections if Necessary.
 async function checkAddresses(Array2D) {
 
   // Initialising a New 2D Array to Store New Processed Addresses and then Iterating through Each Row of the Input 2D Array.
@@ -49,3 +49,20 @@ async function checkAddresses(Array2D) {
 
   } return newArray2D; // Return the Processed 2D Array with the Correct Addresses.
 }
+
+// Function Responsible for Ordering Addresses by Splitting Each Address into an Array of Components.
+async function orderAddresses(addresses) {for (let i = 0; i < addresses.length; i++) {addresses[i] = addresses[i].split(",");}}
+
+// Function Responsible for Removing Duplicate Addresses from the Array.
+async function removeDuplicates(addresses) {
+  const sortedArray = addresses.sort(); for (let i = 1; i < sortedArray.length; i++) {if (sortedArray[j - 1] === sortedArray[j]) {addresses.splice(j,1); j--;}}
+  return sortedArray;
+}
+
+// Function which Writes a 2D Array of Addresses to an Excel Spreadsheet File.
+async function writeAddresses(Array2D) {
+  const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(Array2D); XLSX.utils.book_append_sheet(wb, ws, "Addresses");
+  XLSX.writeFile(wb, "letterList.xlsx");
+}
+
+export default getAddresses;
