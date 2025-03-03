@@ -1,40 +1,27 @@
-@font-face {
-  font-family: "Poppins";
-  src: url("../assets/fonts/Poppins-Black.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Poppins:wght@900&display=swap');
+
+:root {--PoppinsFont: 'Poppins', sans-serif;}
+
+.options-container {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url("./assets/images/options-screen-background.svg"); background-size: cover; background-position: center;
+  background-repeat: no-repeat; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000000;
 }
 
-:root {
-  --PoppinsFont: 'Poppins', sans-serif;
+.options-title {margin-bottom: 10vh; font-size: 4rem; font-family: var(--PoppinsFont); font-weight: 900; color: #00a20a}
+
+.buttons-container {display: flex; justify-content: center; gap: 2vw;}
+
+.option-box {width: 45vw; height: 60vh; background-color: white; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-family: var(--PoppinsFont); font-size: clamp(1rem, 2.5vw, 2rem);
+  box-shadow: 0 64px 160px rgba(0,0,0,0.2); flex-shrink: 0;
 }
 
-.options-container {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column;  justify-content: center; align-items: center;  z-index: 1000000;}
+.download-icon {font-size: 5rem; color: #00a20a; display: block; margin: 0 auto 10px;}
 
-.options-title {
-  margin-bottom: 30px;
-  font-size: 2rem;
-  font-family: var(--PoppinsFont);
-}
+.download-content h2 {display: block; font-family: 'Poppins', sans-serif; font-size: 2rem; font-weight: 900;}
 
-.buttons-container {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
+.download-content p {display: block; font-family: 'Poppins', sans-serif; color: #333; font-size: 1.5rem;}
 
-.option-button {
-  width: 150px;
-  height: 150px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  border: none;
-  border-radius: 10px;
-  background-color: #f0f0f0;
-  transition: background-color 0.3s;
-  font-family: var(--PoppinsFont);
-}
+.download-content-buttons-group {display: flex; flex-direction: row; justify-content: center; gap: 15px; margin: 0; gap: 2vw;}
 
-.option-button:hover {
-  background-color: #e0e0e0;
-}
+.download-content button {padding: 10px 20px; font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 500; color: #fff; background-color: #00a20a; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;}
+
+.option-box button:hover {background-color: #008008;}
