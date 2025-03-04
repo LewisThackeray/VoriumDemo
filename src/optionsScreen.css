@@ -1,27 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Poppins:wght@900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000&family=Poppins:wght@900&display=swap');
 
 :root {--PoppinsFont: 'Poppins', sans-serif;}
 
-.options-container {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url("./assets/images/options-screen-background.svg"); background-size: cover; background-position: center;
-  background-repeat: no-repeat; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000000;
+.options-container {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url("./assets/images/options-screen-background.svg"); background-size: cover; background-position: center; background-repeat: no-repeat; display: flex;
+  flex-direction: column; justify-content: center; align-items: center; z-index: 1000000;
 }
 
-.options-title {margin-bottom: 10vh; font-size: 4rem; font-family: var(--PoppinsFont); font-weight: 900; color: #00a20a}
+.options-title {margin-bottom: 10vh; font-size: 4rem; font-family: var(--PoppinsFont); font-weight: 900; color: #00a20a;}
 
 .buttons-container {display: flex; justify-content: center; gap: 2vw;}
 
 .option-box {width: 45vw; height: 60vh; background-color: white; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-family: var(--PoppinsFont); font-size: clamp(1rem, 2.5vw, 2rem);
-  box-shadow: 0 64px 160px rgba(0,0,0,0.2); flex-shrink: 0;
+  box-shadow: 0 64px 160px rgba(0, 0, 0, 0.2); flex-shrink: 0;
 }
 
 .download-icon {font-size: 5rem; color: #00a20a; display: block; margin: 0 auto 10px;}
 
 .download-content h2 {display: block; font-family: 'Poppins', sans-serif; font-size: 2rem; font-weight: 900;}
 
-.download-content p {display: block; font-family: 'Poppins', sans-serif; color: #333; font-size: 1.5rem;}
+.download-content p {display: block; font-family: 'Poppins', sans-serif; color: #333; font-size: 1.2rem; padding-left: 10px; padding-right: 10px;}
 
-.download-content-buttons-group {display: flex; flex-direction: row; justify-content: center; gap: 15px; margin: 0; gap: 2vw;}
+.download-content-buttons-group {display: flex; flex-direction: row; justify-content: center; gap: 5vw; margin: 0; padding-bottom: 92px;}
 
-.download-content button {padding: 10px 20px; font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 500; color: #fff; background-color: #00a20a; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;}
+.download-content button {padding-top: 10px; padding-right: 20px; font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 500; color: #fff; background-color: #00a20a; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;}
 
 .option-box button:hover {background-color: #008008;}
+
+.generate-icon {font-size: 5rem; color: #00a20a; display: block; margin: 0 auto 10px;}
+
+.generate-content h2 {display: block; font-family: 'Poppins', sans-serif; font-size: 2rem; font-weight: 900;}
+
+.wand-container {display: flex; align-items: center; gap: 0.4em;}
+
+.wand-icon {color: #d95cff; font-size: 1.5rem;}
+
+.AI-content span {font-size: 1.2rem; font-family: var(--PoppinsFont); background-color: #f4bdff; display: inline-block; width: fit-content; border-radius: 5px; padding-left: 10px; padding-right: 10px; padding-top: 5px; padding-bottom: 5px;}
+
+.generate-content p {display: block; font-family: var(--PoppinsFont); color: #333; font-size: 1.2rem; padding-left: 10px; padding-right: 10px;}
+
+.taster p {font-family: var(--PoppinsFont); font-size: 1.5rem; font-weight: 900; color: #00a20a; text-decoration: underline;}
