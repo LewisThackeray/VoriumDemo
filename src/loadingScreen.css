@@ -1,21 +1,23 @@
-@font-face {font-family: "Poppins"; src: url("../assets/fonts/Poppins-Black.ttf") format("truetype"); font-weight: normal; font-style: normal;}
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000&family=Poppins:wght@900&display=swap');
 
 :root {--PoppinsFont: 'Poppins', sans-serif;}
 
-.loading-screen {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column;  justify-content: center; align-items: center;  z-index: 1000000;}
+.loading-container {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: white; display: flex; justify-content: center; align-items: center; z-index: 1000000; font-family: var(--PoppinsFont); overflow: hidden;}
 
-.loading-image {height: 100px; width: 100px; border-radius: 5px;}
+.dots-background {position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;}
 
-h1 {font-family: var(--PoppinsFont); font-size: 50px; font-weight: bolder; border-radius: 10px;}
+.spinning-dot {position: absolute; width: 10px; height: 10px; background-color: #00a20a; border-radius: 50%; transform-origin: center; animation: spinDot 4s linear infinite;}
 
-.progress-container {padding-top: 100px; width: 50%; text-align: center;}
+@keyframes spinDot {0% {transform: rotate(0deg) translateX(50px);} 100% {transform: rotate(360deg) translateX(50px);}}
 
-progress {width: 100%; height: 50px; margin-bottom: 10px; background-color: #444; border-radius: 15px;}
+.loading-content-box {background-color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 30px; text-align: center; width: 500px; max-width: 90%; position: relative; z-index: 10;}
 
-progress::-webkit-progress-bar {background-color: #444; border-radius: 15px;}
+.loading-content-box h1 {color: #00a20a; font-size: 2.5rem; font-weight: 900; margin-bottom: 20px;}
 
-progress::-webkit-progress-value {background-color: #00cc00; border-radius: 15px;}
+.progress-container {width: 100%; height: 20px; background-color: #f0f0f0; border-radius: 10px; overflow: hidden; margin-bottom: 15px;}
 
-progress::-moz-progress-bar {background-color: #00cc00; border-radius: 15px;}
+.progress-bar {height: 100%; background-color: #00a20a; transition: width 0.3s ease;}
 
-p {font-family: var(--PoppinsFont); font-weight: lighter;}
+.progress-percentage {color: black; font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;}
+
+.loading-hint {color: #666; font-size: 1rem;}
