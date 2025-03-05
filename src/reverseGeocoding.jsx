@@ -59,10 +59,4 @@ async function removeDuplicates(addresses) {
   return sortedArray;
 }
 
-// Function which Writes a 2D Array of Addresses to an Excel Spreadsheet File.
-async function writeAddresses(Array2D) {
-  const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(Array2D); XLSX.utils.book_append_sheet(wb, ws, "Addresses");
-  XLSX.writeFile(wb, "letterList.xlsx");
-}
-
 export default getAddresses;
