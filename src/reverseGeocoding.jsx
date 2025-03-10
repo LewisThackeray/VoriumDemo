@@ -1,5 +1,7 @@
 import {loadModules} from "esri-loader"; import * as XLSX from "xlsx"; // Importing the Necessary Modules for my Implementation.
 
+let coordinates = [];
+
 // Function Responsible for Controlling the Flow of Data in this File, Reverse Geocoding the Coordinates Provided to Gain Addresses which Letters can be Sent To.
 async function getAddresses(coordinates) {
   try {
@@ -20,7 +22,7 @@ async function getAddresses(coordinates) {
 
       // Checking the Addresses are in the Correct Format, and if they Need Correcting, the Function is Responsible for this.
       const finalArray = await removeDuplicates(myAddresses); const Array2D = await orderAddresses(finalArray); const correctedArray = await checkAddresses(Array2D);
-      await writeAddresses(correctedArray);
+      coordinates = correctedArray;
 
     }
   } catch (error) {console.error("Reverse Geocoding Failed! " + error);}
@@ -59,4 +61,19 @@ async function removeDuplicates(addresses) {
   return sortedArray;
 }
 
-export default getAddresses;
+// Function Responsible for Writing the Addresses to an XLSX Document for the User to Download.
+async function writeAddressesToXLSX() {
+  alert("The XLSX Option was Selected!")
+}
+
+// Function Responsible for Writing the Addresses to an XLS Document for the User to Download.
+async function writeAddressesToXLS() {
+  alert("The XLS Option was Selected!")
+}
+
+// Function Responsible for Writing the Addresses to a CSV Document for the User to Download.
+async function writeAddressesToCSV() {
+  alert("The CSV Option was Selected!")
+}
+
+export default getAddresses; export {writeAddressesToXLSX, writeAddressesToXLS, writeAddressesToCSV}
