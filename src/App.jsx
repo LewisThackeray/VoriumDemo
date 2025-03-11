@@ -27,7 +27,7 @@ function App() {
   const [isShowingOptionsScreen, setIsShowingOptionsScreen] = useState(false);
 
   const [popUpTitle, setPopUpTitle] = useState(''); const [popUpMessage, setPopUpMessage] = useState(''); const [polygonPoints, setPolygonPoints] = useState([]);
-  const[drawnGraphics, setDrawnGraphics] = useState([]); const [coordinates, setCoordinates] = useState([]);
+  const[drawnGraphics, setDrawnGraphics] = useState([]); const [coordinates, setCoordinates] = useState(null);
 
   const shapeRef = useRef(false); const mapRef = useRef(null); const viewRef = useRef(null); const sketchRef = useRef(null); const graphicsLayerRef = useRef(null);
 
@@ -170,10 +170,13 @@ function App() {
             await new Promise((resolve) => {
                 viewRef.current.when(() => {
                     viewRef.current.takeScreenshot().then((screenshot) => {
-                        const img = new Image(); img.src = screenshot.dataUrl; img.onload = () => {
-                            ctx.drawImage(img, 0, 0); sharedState.dataURL = canvas.toDataURL('image/png'); sharedState.bounds = { xmin, ymin, xmax, ymax };
-                            message(sharedState, (pointsToReverseGeocode) => {setCoordinates(pointsToReverseGeocode);}); setIsShowingLoadingScreen(true);
-                        }; resolve();
+                        const img = new Image(); img.src = screenshot.dataUrl;
+                        img.onload = async () => {
+                          ctx.drawImage(img, 0, 0); sharedState.dataURL = canvas.toDataURL('image/png'); sharedState.bounds = { xmin, ymin, xmax, ymax };
+                          await new Promise((resolveCallback) => {
+                            message(sharedState, (pointsToReverseGeocode) => {setCoordinates(pointsToReverseGeocode || []); resolveCallback();});
+                          }); setIsShowingLoadingScreen(true);
+                        };
                     }).catch((error) => {showErrorPopup("Screenshot couldn't be taken!");});
                 });
             });

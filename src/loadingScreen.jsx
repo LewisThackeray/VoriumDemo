@@ -6,13 +6,14 @@ const LoadingScreen = ({ coordinates, onLoadingComplete }) => {
     return dotsArray;
   }, []);
 
-  useEffect(() => {if (coordinates && coordinates.length > 0) {const updateInterval = 100; const increment = 100 / coordinates.length;
-      const interval = setInterval(() => {
+  useEffect(() => {
+    if (coordinates === null || coordinates === undefined) return;
+    if (Array.isArray(coordinates) && coordinates.length > 0) {
+      const updateInterval = 100; const increment = 100 / coordinates.length; const interval = setInterval(() => {
         setProgress((prevProgress) => {if (prevProgress >= 100) {clearInterval(interval); onLoadingComplete(); return 100;} return prevProgress + increment;});
-      }, updateInterval);
-      return () => clearInterval(interval);
-  } else {console.error("The Coordinates Array is Empty or Invalid!");}}, [coordinates, onLoadingComplete]);
-
+      }, updateInterval); return () => clearInterval(interval);
+    } else {console.error("The Coordinates Array is Empty or Invalid!");}
+  }, [coordinates, onLoadingComplete]);
   return (
     <div className="loading-container">
       <div className="dots-background">

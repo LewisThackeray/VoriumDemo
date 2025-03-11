@@ -33,7 +33,9 @@ async function message(sharedState, callback) {
 
   const pointsToReverseGeocode = await globalCoordinates(sharedState.bounds, inputImage, selectedPoints);
 
-  if (callback) {callback(pointsToReverseGeocode);}
+  if (callback) {callback(pointsToReverseGeocode);} // Sending the Points to the App.jsx File which to Calculate how Long the Loading Screen should be Displayed for.
+
+  getAddresses(pointsToReverseGeocode); // Sending the Points to the reverseGeocoding.jsx File to Find the Addresses.
 
 }
 
