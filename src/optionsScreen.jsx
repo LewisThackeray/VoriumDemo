@@ -26,7 +26,7 @@ const OptionsScreen = () => {
               Customise the content, design, and tone of each letter to connect with stakeholders on a personal level — showing them how valued they are by your
               organisation!
             </p>
-            <div className="taster"> <p>COMING TO THE UK IN 2025</p> </div>
+            <div className="taster"> <p>COMING SOON</p> </div>
           </div>
         </div>
       </div>

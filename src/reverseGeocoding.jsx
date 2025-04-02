@@ -85,12 +85,13 @@ async function writeAddressesToXLSX() {
 
 // Function Responsible for Writing the Addresses to an XLS Document for the User to Download.
 async function writeAddressesToXLS() {
-  // TO IMPLEMENT
+  const workbook = XLSX.utils.book_new(); const worksheet = XLSX.utils.aoa_to_sheet(addresses);  XLSX.utils.book_append_sheet(workbook, worksheet, "Addresses");
+  const fileName = `Address List - ${getDate()}.xls`; XLSX.writeFile(workbook, fileName);
 }
 
 // Function Responsible for Writing the Addresses to a CSV Document for the User to Download.
 async function writeAddressesToCSV() {
-  // TO IMPLEMENT
+  // IMPLEMENT THIS FUNCTION FOR ME!!!
 }
 
 export default getAddresses; export {writeAddressesToXLSX, writeAddressesToXLS, writeAddressesToCSV};
