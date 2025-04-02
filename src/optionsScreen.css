@@ -1,41 +1,39 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000&family=Poppins:wght@900&display=swap');
 
-:root {--PoppinsFont: 'Poppins', sans-serif;}
+:root {--PoppinsFont: 'Poppins', sans-serif; --primary-color: #00a20a; --hover-color: #008008; --accent-color: #d95cff; --accent-bg: #f4bdff; --text-color: #333;}
 
-.options-container {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url("./assets/images/options-screen-background.svg"); background-size: cover; background-position: center; background-repeat: no-repeat; display: flex;
-  flex-direction: column; justify-content: center; align-items: center; z-index: 1000000;
-}
+.options-container {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url("./assets/images/options-screen-background.svg"); background-size: cover; background-position: center; background-repeat: no-repeat; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; z-index: 1000000; padding: 1rem; overflow-y: auto;}
 
-.options-title {margin-bottom: 10vh; font-size: 4rem; font-family: var(--PoppinsFont); font-weight: 900; color: #00a20a;}
+.options-title {margin-bottom: 10vh; font-size: 4rem; font-family: var(--PoppinsFont); font-weight: 900; color: var(--primary-color); text-align: center;}
 
-.buttons-container {display: flex; justify-content: center; gap: 2vw;}
+.buttons-container {display: flex; justify-content: center; gap: 2vw; flex-wrap: wrap; width: 100%; max-width: 1400px;}
 
-.option-box {width: 45vw; height: 60vh; background-color: white; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-family: var(--PoppinsFont); font-size: clamp(1rem, 2.5vw, 2rem);
-  box-shadow: 0 64px 160px rgba(0, 0, 0, 0.2); flex-shrink: 0;
-}
+.option-box {width: 100%; max-width: 550px; min-height: 450px; background-color: white; border-radius: 10px; display: flex; justify-content: center; align-items: center; padding: 2rem 1.5rem; font-family: var(--PoppinsFont); font-size: clamp(1rem, 2.5vw, 2rem);
+  box-shadow: 0 64px 160px rgba(0, 0, 0, 0.2); flex: 1 1 300px;}
 
-.download-icon {font-size: 5rem; color: #00a20a; display: block; margin: 0 auto 10px;}
+.download-content, .generate-content {width: 100%; text-align: center;}
 
-.download-content h2 {display: block; font-family: 'Poppins', sans-serif; font-size: 2rem; font-weight: 900;}
+.download-icon, .generate-icon {font-size: 5rem; color: var(--primary-color); display: block; margin: 0 auto 10px;}
 
-.download-content p {display: block; font-family: 'Poppins', sans-serif; color: #333; font-size: 1.2rem; padding-left: 10px; padding-right: 10px;}
+.download-content h2, .generate-content h2 {font-family: var(--PoppinsFont); font-size: 2rem;  font-weight: 900; margin-bottom: 1rem;}
 
-.download-content-buttons-group {display: flex; flex-direction: row; justify-content: center; gap: 5vw; margin: 0; padding-bottom: 92px;}
+.download-content p, .generate-content p {font-family: var(--PoppinsFont); color: var(--text-color); font-size: 1.2rem; padding: 0 10px; margin-bottom: 1rem;}
 
-.download-content button {padding-top: 10px; padding-right: 20px; font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 500; color: #fff; background-color: #00a20a; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;}
+.download-content-buttons-group {display: flex; flex-wrap: wrap; justify-content: center; gap: 5vw; margin: 0; padding-bottom: 92px;}
 
-.option-box button:hover {background-color: #008008;}
+.download-content button {padding-top: 10px; padding-right: 20px; font-family: var(--PoppinsFont); font-size: 1.5rem; font-weight: 500; color: #fff; background-color: var(--primary-color); border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease;}
 
-.generate-icon {font-size: 5rem; color: #00a20a; display: block; margin: 0 auto 10px;}
-
-.generate-content h2 {display: block; font-family: 'Poppins', sans-serif; font-size: 2rem; font-weight: 900;}
+.option-box button:hover {background-color: var(--hover-color);}
 
 .wand-container {display: flex; align-items: center; gap: 0.4em;}
 
-.wand-icon {color: #d95cff; font-size: 1.5rem;}
+.wand-icon {color: var(--accent-color); font-size: 1.5rem;}
 
-.AI-content span {font-size: 1.2rem; font-family: var(--PoppinsFont); background-color: #f4bdff; display: inline-block; width: fit-content; border-radius: 5px; padding-left: 10px; padding-right: 10px; padding-top: 5px; padding-bottom: 5px;}
+.AI-content span {font-size: 1.2rem; font-family: var(--PoppinsFont); background-color: var(--accent-bg); display: inline-block;  width: fit-content; border-radius: 5px; padding-left: 10px; padding-right: 10px; padding-top: 5px; padding-bottom: 5px;}
 
-.generate-content p {display: block; font-family: var(--PoppinsFont); color: #333; font-size: 1.2rem; padding-left: 10px; padding-right: 10px;}
+.taster p {font-family: var(--PoppinsFont); font-size: 1.5rem; font-weight: 900; color: var(--primary-color); text-decoration: underline;}
 
-.taster p {font-family: var(--PoppinsFont); font-size: 1.5rem; font-weight: 900; color: #00a20a; text-decoration: underline;}
+@media (max-width: 768px) {.buttons-container {flex-direction: column; align-items: center;} .option-box {width: 90%; margin-bottom: 2rem;} .options-title {font-size: 3rem;}}
+
+@media (max-width: 480px) {.options-title {font-size: 2.5rem; margin-bottom: 2rem;} .option-box {padding: 1.5rem 1rem;} .download-content-buttons-group {gap: 2rem;} .download-content h2, .generate-content h2 {font-size: 1.8rem;} .download-content button {font-size: 1.4rem;}}

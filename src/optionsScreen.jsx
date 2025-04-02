@@ -1,6 +1,5 @@
-import React, {useEffect, useState} from 'react'; import { MdOutlineFileDownload } from "react-icons/md"; import { IoIosMail } from "react-icons/io";
-import { ImMagicWand } from "react-icons/im";  import {writeAddressesToCSV, writeAddressesToXLSX, writeAddressesToXLS} from './reverseGeocoding.jsx'
-import './optionsScreen.css';
+import React from "react"; import { MdOutlineFileDownload } from "react-icons/md"; import { IoIosMail } from "react-icons/io"; import { ImMagicWand } from "react-icons/im";
+import {writeAddressesToCSV, writeAddressesToXLSX, writeAddressesToXLS} from './reverseGeocoding.jsx'; import './optionsScreen.css';
 
 const OptionsScreen = () => {
   return (
