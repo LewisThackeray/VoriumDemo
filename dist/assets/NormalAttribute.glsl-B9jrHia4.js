@@ -1,0 +1,11 @@
+import"./index-BdXiYUWp.js";import{n as h}from"./compilerUtils-B5rIYOON.js";import{e as c}from"./VertexAttribute-BdZWZuT1.js";var l;(function(r){r[r.Multiply=1]="Multiply",r[r.Ignore=2]="Ignore",r[r.Replace=3]="Replace",r[r.Tint=4]="Tint"})(l||(l={}));let m=class{};const y=m;function n(r,...o){let i="";for(let t=0;t<o.length;t++)i+=r[t]+o[t];return i+=r[r.length-1],i}function H(r,o,i=""){return r?o:i}(function(r){function o(t){return Math.round(t).toString()}function i(t){return t.toPrecision(8)}r.int=o,r.float=i})(n||(n={}));var e;function T(r){return r===e.Shadow||r===e.ShadowHighlight||r===e.ShadowExcludeHighlight||r===e.ViewshedShadow}function $(r){return v(r)||r===e.Normal}function x(r){return w(r)||r===e.Normal}function u(r){return r===e.Highlight||r===e.ObjectAndLayerIdColor}function s(r){return r===e.Color}function f(r){return s(r)||C(r)}function g(r){return s(r)||u(r)}function p(r){return f(r)||u(r)}function v(r){return g(r)||d(r)}function w(r){return p(r)||d(r)}function d(r){return r===e.Depth}function C(r){return r===e.ColorEmission}(function(r){r[r.Color=0]="Color",r[r.ColorEmission=1]="ColorEmission",r[r.Depth=2]="Depth",r[r.Normal=3]="Normal",r[r.Shadow=4]="Shadow",r[r.ShadowHighlight=5]="ShadowHighlight",r[r.ShadowExcludeHighlight=6]="ShadowExcludeHighlight",r[r.ViewshedShadow=7]="ViewshedShadow",r[r.Highlight=8]="Highlight",r[r.ObjectAndLayerIdColor=9]="ObjectAndLayerIdColor",r[r.COUNT=10]="COUNT"})(e||(e={}));function A(r,o){switch(o.normalType){case a.Compressed:r.attributes.add(c.NORMALCOMPRESSED,"vec2"),r.vertex.code.add(n`vec3 decompressNormal(vec2 normal) {
+float z = 1.0 - abs(normal.x) - abs(normal.y);
+return vec3(normal + sign(normal) * min(z, 0.0), z);
+}
+vec3 normalModel() {
+return decompressNormal(normalCompressed);
+}`);break;case a.Attribute:r.attributes.add(c.NORMAL,"vec3"),r.vertex.code.add(n`vec3 normalModel() {
+return normal;
+}`);break;case a.ScreenDerivative:r.fragment.code.add(n`vec3 screenDerivativeNormal(vec3 positionView) {
+return normalize(cross(dFdx(positionView), dFdy(positionView)));
+}`);break;default:h(o.normalType);case a.COUNT:}}var a;(function(r){r[r.Attribute=0]="Attribute",r[r.Compressed=1]="Compressed",r[r.ScreenDerivative=2]="ScreenDerivative",r[r.COUNT=3]="COUNT"})(a||(a={}));export{C as S,a,A as b,e as c,x as d,T as e,$ as f,g,l as n,n as o,H as r,y as t,f as u};
