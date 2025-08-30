@@ -1,0 +1,1 @@
+import{w as i,Z as s}from"./index-I9PDFXow.js";const e=class e{};e.instance=new i("Etc/UTC");let n=e;function o(t){return t instanceof s?t===n.instance:(t==null?void 0:t.toString().toLowerCase())==="unknown"}function c(t){return o(t)?n.instance:t}export{o as e,c as i,n as o};
